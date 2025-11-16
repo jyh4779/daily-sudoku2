@@ -1,5 +1,6 @@
 import React from 'react';
 import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
+import { TEXTS } from '../../config/texts';
 
 type HomeScreenProps = {
   onPressNewGame?: () => void;
@@ -22,16 +23,16 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   const buttonWidth = Math.max(160, Math.round(width / 3));
 
   const buttons = [
-    { label: '새 게임', onPress: onPressNewGame, disabled: false },
-    { label: '이어하기', onPress: onPressContinue, disabled: !continueAvailable },
-    { label: '통계', onPress: onPressStats, disabled: false },
-    { label: '설정', onPress: onPressSettings, disabled: false },
+    { label: TEXTS.home.newGame, onPress: onPressNewGame, disabled: false },
+    { label: TEXTS.home.continue, onPress: onPressContinue, disabled: !continueAvailable },
+    { label: TEXTS.home.stats, onPress: onPressStats, disabled: false },
+    { label: TEXTS.home.settings, onPress: onPressSettings, disabled: false },
   ];
 
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
-        <Text style={styles.title}>Daily Sudoku</Text>
+        <Text style={styles.title}>{TEXTS.appName}</Text>
 
         <View style={styles.menuList}>
           {buttons.map(btn => (

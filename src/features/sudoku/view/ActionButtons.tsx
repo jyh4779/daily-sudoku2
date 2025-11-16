@@ -4,6 +4,7 @@ import Svg, { Path, Rect, G } from 'react-native-svg';
 import { useSudokuStore } from '../viewmodel/sudokuStore';
 import EraserIcon from '../../../assets/icons/eraser.svg';
 import UndoIcon from '../../../assets/icons/undo.svg';
+import { TEXTS } from '../../../config/texts';
 
 type Action = 'undo' | 'erase' | 'note' | 'hint' | 'padmode';
 
@@ -118,11 +119,11 @@ export default function ActionButtons() {
 
   return (
     <View style={styles.row}>
-      <ActionButton action="undo" label="\uB418\uB3CC\uB9AC\uAE30" onPress={onUndo} />
-      <ActionButton action="erase" label="\uC9C0\uC6B0\uAC1C" onPress={onErase} />
-      <ActionButton action="hint" label="\uD78C\uD2B8" onPress={onHint} />
-      <ActionButton action="note" label="\uB178\uD2B8" onPress={onNote} active={noteMode} />
-      <ActionButton action="padmode" label="\uD0ED \uC785\uB825" onPress={onPadMode} active={padSelectMode} />
+      <ActionButton action="undo" label={TEXTS.game.actions.undo} onPress={onUndo} />
+      <ActionButton action="erase" label={TEXTS.game.actions.erase} onPress={onErase} />
+      <ActionButton action="hint" label={TEXTS.game.actions.hint} onPress={onHint} />
+      <ActionButton action="note" label={TEXTS.game.actions.note} onPress={onNote} active={noteMode} />
+      <ActionButton action="padmode" label={TEXTS.game.actions.padMode} onPress={onPadMode} active={padSelectMode} />
     </View>
   );
 }

@@ -5,6 +5,7 @@ import NumberPad from './view/NumberPad';
 import ActionButtons from './view/ActionButtons';
 import { useSudokuStore } from './viewmodel/sudokuStore';
 import AspectFitContainer from '../../components/layout/AspectFitContainer';
+import { TEXTS } from '../../config/texts';
 
 type SudokuScreenProps = {
   onGoHome?: () => void;
@@ -121,7 +122,7 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode }) => {
         return (
           <View style={{ width: stageW, height: stageH }}>
             <View style={[styles.topBar, { height: unit }]}>
-              <Text style={styles.topLeft}>{`\uC2E4\uC218 ${mistakes}/${mistakeLimit}`}</Text>
+              <Text style={styles.topLeft}>{TEXTS.game.mistakeCounter(mistakes, mistakeLimit)}</Text>
               <Text style={styles.topTitle}>{timeText}</Text>
               <Pressable
                 style={[styles.pauseButton, (isPaused || isLost || isSolved) && styles.pauseButtonDisabled]}
@@ -134,7 +135,7 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode }) => {
             </View>
 
             <View style={[styles.difficultyWrap, { height: unit }]}>
-              <Text style={styles.difficulty}>Easy</Text>
+              <Text style={styles.difficulty}>{TEXTS.game.difficulty.easy}</Text>
             </View>
 
             <View style={[styles.boardArea, { height: unit * 10 }]} onLayout={onLayoutBoardArea}>
@@ -177,33 +178,37 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode }) => {
       <View style={styles.overlay}>
         <View style={styles.modalCard}>
           <Text style={styles.modalTitle}>
-            {isPaused ? 'Pause' : isLost ? 'Loss' : 'Success'}
+            {isPaused
+              ? TEXTS.game.overlayTitle.pause
+              : isLost
+              ? TEXTS.game.overlayTitle.loss
+              : TEXTS.game.overlayTitle.success}
           </Text>
           {isPaused ? (
             <View style={styles.modalBtns}>
               <Pressable style={styles.modalBtn} onPress={handleResume}>
-                <Text style={styles.modalBtnText}>Continue</Text>
+                <Text style={styles.modalBtnText}>{TEXTS.game.overlayButtons.continue}</Text>
               </Pressable>
               <Pressable style={styles.modalBtn} onPress={handleRestart}>
-                <Text style={styles.modalBtnText}>Restart</Text>
+                <Text style={styles.modalBtnText}>{TEXTS.game.overlayButtons.restart}</Text>
               </Pressable>
             </View>
           ) : isLost ? (
             <View style={styles.modalBtns}>
               <Pressable style={styles.modalBtn} onPress={handleRestart}>
-                <Text style={styles.modalBtnText}>Restart</Text>
+                <Text style={styles.modalBtnText}>{TEXTS.game.overlayButtons.restart}</Text>
               </Pressable>
               <Pressable style={styles.modalBtn} onPress={resetMistakes}>
-                <Text style={styles.modalBtnText}>Continue</Text>
+                <Text style={styles.modalBtnText}>{TEXTS.game.overlayButtons.continue}</Text>
               </Pressable>
             </View>
           ) : (
             <View style={styles.modalBtns}>
               <Pressable style={styles.modalBtn} onPress={handleNewGame}>
-                <Text style={styles.modalBtnText}>New Game</Text>
+                <Text style={styles.modalBtnText}>{TEXTS.game.overlayButtons.newGame}</Text>
               </Pressable>
               <Pressable style={styles.modalBtn} onPress={onGoHome}>
-                <Text style={styles.modalBtnText}>Home</Text>
+                <Text style={styles.modalBtnText}>{TEXTS.game.overlayButtons.home}</Text>
               </Pressable>
             </View>
           )}
