@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { SafeAreaView, StatusBar, View, Image, StyleSheet } from 'react-native';
+import mobileAds from 'react-native-google-mobile-ads';
 import AppLogger from './src/core/logger/AppLogger';
 import { log } from './src/core/logger/log';
 import SudokuScreen from './src/features/sudoku/SudokuScreen';
@@ -17,6 +18,7 @@ export default function App() {
   useEffect(() => {
     AppLogger.init();
     void log('APP', 'mounted');
+    void mobileAds().initialize();
   }, []);
 
   const refreshResumeAvailability = useCallback(() => {

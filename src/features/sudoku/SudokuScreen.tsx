@@ -1,11 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, StyleSheet, LayoutChangeEvent, useWindowDimensions, Pressable } from 'react-native';
+import { View, Text, StyleSheet, LayoutChangeEvent, useWindowDimensions, Pressable, Platform } from 'react-native';
+import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
 import Board from './view/Board';
 import NumberPad from './view/NumberPad';
 import ActionButtons from './view/ActionButtons';
 import { useSudokuStore } from './viewmodel/sudokuStore';
 import AspectFitContainer from '../../components/layout/AspectFitContainer';
 import { TEXTS } from '../../config/texts';
+import { ADMOB_IDS, BANNER_RESERVED_SPACE } from '../../config/admob';
 
 type SudokuScreenProps = {
   onGoHome?: () => void;
@@ -29,6 +31,7 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode }) => {
   const incrementElapsed = useSudokuStore(s => s.incrementElapsed);
   const loadSavedGameFromDb = useSudokuStore(s => s.loadSavedGameFromDb);
   const [isPaused, setIsPaused] = useState(false);
+  const handleGoHome = onGoHome ?? (() => {});
 
   useEffect(() => {
     let isMounted = true;
@@ -101,126 +104,149 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode }) => {
     setIsPaused(true);
   };
   const handleResume = () => setIsPaused(false);
+  const bannerUnitId =
+    Platform.select({
+      android: ADMOB_IDS.android.banner,
+      ios: ADMOB_IDS.ios.banner,
+    }) ?? ADMOB_IDS.android.banner;
 
   return (
-    <>
-    <AspectFitContainer ratio={[9, 16]} outerGutter={GUTTER} backgroundColor="#fdf8f4">
-      {({ width: stageW, height: stageH }: { width: number; height: number }) => {
-        const unit = stageH / 16;
-        // Compute actual drawable board side the same way Board.tsx does
-        // to avoid rounding leftovers that make centering look off.
-        let boardSide = 0;
-        if (boardBox) {
-          const avail = Math.max(0, Math.min(boardBox.w, boardBox.h) - BOARD_PADDING * 2);
-          const THIN = StyleSheet.hairlineWidth;
-          const THICK = 2;
-          const LINES_SUM = THICK * 4 + THIN * 6;
-          const cell = Math.max(0, Math.floor((avail - LINES_SUM) / 9));
-          boardSide = cell * 9 + LINES_SUM;
-        }
+    <View style={styles.screen}>
+      <AspectFitContainer ratio={[9, 16]} outerGutter={GUTTER} backgroundColor="#fdf8f4">
+        {({ width: stageW, height: stageH }: { width: number; height: number }) => {
+          const unit = stageH / 16;
+          // Compute actual drawable board side the same way Board.tsx does
+          // to avoid rounding leftovers that make centering look off.
+          let boardSide = 0;
+          if (boardBox) {
+            const avail = Math.max(0, Math.min(boardBox.w, boardBox.h) - BOARD_PADDING * 2);
+            const THIN = StyleSheet.hairlineWidth;
+            const THICK = 2;
+            const LINES_SUM = THICK * 4 + THIN * 6;
+            const cell = Math.max(0, Math.floor((avail - LINES_SUM) / 9));
+            boardSide = cell * 9 + LINES_SUM;
+          }
 
-        return (
-          <View style={{ width: stageW, height: stageH }}>
+          return (
+            <View style={{ width: stageW, height: stageH }}>
             <View style={[styles.topBar, { height: unit }]}>
               <Text style={styles.topLeft}>{TEXTS.game.mistakeCounter(mistakes, mistakeLimit)}</Text>
               <Text style={styles.topTitle}>{timeText}</Text>
-              <Pressable
-                style={[styles.pauseButton, (isPaused || isLost || isSolved) && styles.pauseButtonDisabled]}
-                onPress={handlePause}
-                disabled={isPaused || isLost || isSolved}
-              >
-                <View style={styles.pauseBar} />
-                <View style={styles.pauseBar} />
-              </Pressable>
-            </View>
-
-            <View style={[styles.difficultyWrap, { height: unit }]}>
-              <Text style={styles.difficulty}>{TEXTS.game.difficulty.easy}</Text>
-            </View>
-
-            <View style={[styles.boardArea, { height: unit * 10 }]} onLayout={onLayoutBoardArea}>
-              <View
-                style={[
-                  styles.boardCard,
-                  boardSide > 0 && {
-                    width: boardSide + BOARD_PADDING * 2,
-                    height: boardSide + BOARD_PADDING * 2,
-                    padding: BOARD_PADDING,
-                    alignSelf: 'center',
-                  },
-                ]}
-              >
-                {boardSide > 0 && (
-                  isPaused ? (
-                    <View style={[styles.boardMask, { width: boardSide, height: boardSide }]} />
-                  ) : (
-                    <Board size={boardSide} />
-                  )
-                )}
+              <View style={styles.topActions}>
+                <Pressable
+                  style={[styles.pauseButton, (isPaused || isLost || isSolved) && styles.pauseButtonDisabled]}
+                  onPress={handlePause}
+                  disabled={isPaused || isLost || isSolved}
+                >
+                  <View style={styles.pauseBar} />
+                  <View style={styles.pauseBar} />
+                </Pressable>
+                <Pressable style={styles.homeButton} onPress={handleGoHome}>
+                  <Text style={styles.homeIcon}>⌂</Text>
+                </Pressable>
               </View>
             </View>
+
+              <View style={[styles.difficultyWrap, { height: unit }]}>
+                <Text style={styles.difficulty}>{TEXTS.game.difficulty.easy}</Text>
+              </View>
+
+              <View style={[styles.boardArea, { height: unit * 10 }]} onLayout={onLayoutBoardArea}>
+                <View
+                  style={[
+                    styles.boardCard,
+                    boardSide > 0 && {
+                      width: boardSide + BOARD_PADDING * 2,
+                      height: boardSide + BOARD_PADDING * 2,
+                      padding: BOARD_PADDING,
+                      alignSelf: 'center',
+                    },
+                  ]}
+                >
+                  {boardSide > 0 && (
+                    isPaused ? (
+                      <View style={[styles.boardMask, { width: boardSide, height: boardSide }]} />
+                    ) : (
+                      <Board size={boardSide} />
+                    )
+                  )}
+                </View>
+              </View>
 
             <View style={[styles.tools, { height: unit }]}>
               <ActionButtons />
             </View>
 
-            {!isPaused && (
-              <View style={[styles.padArea, { height: unit * 3 }]}>
-                <NumberPad />
+              {!isPaused && (
+                <View style={[styles.padArea, { height: unit * 3 }]}>
+                  <NumberPad />
+                </View>
+              )}
+            </View>
+          );
+        }}
+      </AspectFitContainer>
+
+      {(isLost || isSolved || isPaused) && (
+        <View style={styles.overlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>
+              {isPaused
+                ? TEXTS.game.overlayTitle.pause
+                : isLost
+                ? TEXTS.game.overlayTitle.loss
+                : TEXTS.game.overlayTitle.success}
+            </Text>
+            {isPaused ? (
+              <View style={styles.modalBtns}>
+                <Pressable style={styles.modalBtn} onPress={handleResume}>
+                  <Text style={styles.modalBtnText}>{TEXTS.game.overlayButtons.continue}</Text>
+                </Pressable>
+                <Pressable style={styles.modalBtn} onPress={handleRestart}>
+                  <Text style={styles.modalBtnText}>{TEXTS.game.overlayButtons.restart}</Text>
+                </Pressable>
+              </View>
+            ) : isLost ? (
+              <View style={styles.modalBtns}>
+                <Pressable style={styles.modalBtn} onPress={handleRestart}>
+                  <Text style={styles.modalBtnText}>{TEXTS.game.overlayButtons.restart}</Text>
+                </Pressable>
+                <Pressable style={styles.modalBtn} onPress={resetMistakes}>
+                  <Text style={styles.modalBtnText}>{TEXTS.game.overlayButtons.continue}</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <View style={styles.modalBtns}>
+                <Pressable style={styles.modalBtn} onPress={handleNewGame}>
+                  <Text style={styles.modalBtnText}>{TEXTS.game.overlayButtons.newGame}</Text>
+                </Pressable>
+              <Pressable style={styles.modalBtn} onPress={handleGoHome}>
+                <Text style={styles.modalBtnText}>{TEXTS.game.overlayButtons.home}</Text>
+              </Pressable>
               </View>
             )}
           </View>
-        );
-      }}
-    </AspectFitContainer>
-        {/* End-game overlays */}
-    {(isLost || isSolved || isPaused) && (
-      <View style={styles.overlay}>
-        <View style={styles.modalCard}>
-          <Text style={styles.modalTitle}>
-            {isPaused
-              ? TEXTS.game.overlayTitle.pause
-              : isLost
-              ? TEXTS.game.overlayTitle.loss
-              : TEXTS.game.overlayTitle.success}
-          </Text>
-          {isPaused ? (
-            <View style={styles.modalBtns}>
-              <Pressable style={styles.modalBtn} onPress={handleResume}>
-                <Text style={styles.modalBtnText}>{TEXTS.game.overlayButtons.continue}</Text>
-              </Pressable>
-              <Pressable style={styles.modalBtn} onPress={handleRestart}>
-                <Text style={styles.modalBtnText}>{TEXTS.game.overlayButtons.restart}</Text>
-              </Pressable>
-            </View>
-          ) : isLost ? (
-            <View style={styles.modalBtns}>
-              <Pressable style={styles.modalBtn} onPress={handleRestart}>
-                <Text style={styles.modalBtnText}>{TEXTS.game.overlayButtons.restart}</Text>
-              </Pressable>
-              <Pressable style={styles.modalBtn} onPress={resetMistakes}>
-                <Text style={styles.modalBtnText}>{TEXTS.game.overlayButtons.continue}</Text>
-              </Pressable>
-            </View>
-          ) : (
-            <View style={styles.modalBtns}>
-              <Pressable style={styles.modalBtn} onPress={handleNewGame}>
-                <Text style={styles.modalBtnText}>{TEXTS.game.overlayButtons.newGame}</Text>
-              </Pressable>
-              <Pressable style={styles.modalBtn} onPress={onGoHome}>
-                <Text style={styles.modalBtnText}>{TEXTS.game.overlayButtons.home}</Text>
-              </Pressable>
-            </View>
-          )}
         </View>
+      )}
+
+      <View style={styles.bannerArea}>
+        <BannerAd
+          unitId={bannerUnitId}
+          size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+          requestOptions={{ requestNonPersonalizedAdsOnly: true }}
+        />
       </View>
-    )}</>
+    </View>
   );
 };
 
 export default SudokuScreen;
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: '#fdf8f4',
+  },
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -249,6 +275,26 @@ const styles = StyleSheet.create({
     borderRadius: 1.5,
     backgroundColor: '#5b7df6',
   },
+  topActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  homeButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#c5cfe5',
+  },
+  homeIcon: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#5b7df6',
+  },
 
   difficultyWrap: { alignItems: 'center', justifyContent: 'center' },
   difficulty: { fontSize: 14, color: '#7a89a8', fontWeight: '600' },
@@ -274,6 +320,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginVertical: 10,
   },
 
   padArea: { justifyContent: 'center', marginBottom: 6 },
@@ -308,6 +355,11 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   modalBtnText: { color: '#fff', fontWeight: '700' },
+  bannerArea: {
+    height: BANNER_RESERVED_SPACE,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });
 
 

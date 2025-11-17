@@ -1,6 +1,8 @@
 import React from 'react';
-import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
+import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Platform } from 'react-native';
+import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
 import { TEXTS } from '../../config/texts';
+import { ADMOB_IDS, BANNER_RESERVED_SPACE } from '../../config/admob';
 
 type HomeScreenProps = {
   onPressNewGame?: () => void;
@@ -32,6 +34,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
     { label: TEXTS.home.stats, icon: '≣', color: '#d7cdfd', onPress: onPressStats, disabled: false },
     { label: TEXTS.home.settings, icon: '⚙', color: '#ffd8ad', onPress: onPressSettings, disabled: false },
   ];
+  const bannerUnitId =
+    Platform.select({
+      android: ADMOB_IDS.android.banner,
+      ios: ADMOB_IDS.ios.banner,
+    }) ?? ADMOB_IDS.android.banner;
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -69,6 +76,13 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
           <View style={styles.bottomSection} />
         </View>
       </View>
+      <View style={styles.bannerArea}>
+        <BannerAd
+          unitId={bannerUnitId}
+          size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+          requestOptions={{ requestNonPersonalizedAdsOnly: true }}
+        />
+      </View>
     </SafeAreaView>
   );
 };
@@ -95,7 +109,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     width: '100%',
-    paddingBottom: 60,
+    paddingBottom: BANNER_RESERVED_SPACE,
   },
   topSection: {
     flex: 1,
@@ -149,5 +163,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#222327',
+  },
+  bannerArea: {
+    height: BANNER_RESERVED_SPACE,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

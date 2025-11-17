@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from 'react';
-import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform } from 'react-native';
+import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
 import { TEXTS } from '../../config/texts';
+import { ADMOB_IDS, BANNER_RESERVED_SPACE } from '../../config/admob';
 
 type StatsScreenProps = {
   onGoBack: () => void;
@@ -27,6 +29,11 @@ const StatsScreen: React.FC<StatsScreenProps> = ({ onGoBack }) => {
     ],
     [],
   );
+  const bannerUnitId =
+    Platform.select({
+      android: ADMOB_IDS.android.banner,
+      ios: ADMOB_IDS.ios.banner,
+    }) ?? ADMOB_IDS.android.banner;
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -127,6 +134,13 @@ const StatsScreen: React.FC<StatsScreenProps> = ({ onGoBack }) => {
           ))}
         </View>
       </ScrollView>
+      <View style={styles.bannerArea}>
+        <BannerAd
+          unitId={bannerUnitId}
+          size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+          requestOptions={{ requestNonPersonalizedAdsOnly: true }}
+        />
+      </View>
     </SafeAreaView>
   );
 };
@@ -201,7 +215,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingTop: 20,
-    paddingBottom: 40,
+    paddingBottom: BANNER_RESERVED_SPACE,
     gap: 16,
   },
   summaryGrid: {
@@ -355,5 +369,10 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: '#2f2010',
+  },
+  bannerArea: {
+    height: BANNER_RESERVED_SPACE,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
