@@ -30,6 +30,35 @@ export const TEXTS = {
       padMode: '\uD0ED \uC785\uB825',
     },
   },
+  stats: {
+    title: 'My Statistics',
+    tabs: {
+      week: 'This Week',
+      month: 'This Month',
+      allTime: 'All Time',
+    },
+    summary: {
+      gamesPlayed: 'Games Played',
+      winRate: 'Win Rate',
+      winStreak: 'Win Streak',
+      avgTime: 'Avg. Time',
+    },
+    ratio: {
+      title: 'Win / Loss Ratio',
+      winsLabel: 'Wins',
+      lossesLabel: 'Losses',
+    },
+    completed: {
+      title: 'Completed Games',
+      subtitle: 'All Time',
+    },
+    bestTimes: {
+      title: 'Best Times',
+      easy: 'Easy',
+      medium: 'Medium',
+      hard: 'Hard',
+    },
+  },
 } as const;
 
 export type TextResources = typeof TEXTS;

@@ -1,13 +1,16 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { SafeAreaView, StatusBar } from 'react-native';
+import { SafeAreaView, StatusBar, View, Image, StyleSheet } from 'react-native';
 import AppLogger from './src/core/logger/AppLogger';
 import { log } from './src/core/logger/log';
 import SudokuScreen from './src/features/sudoku/SudokuScreen';
 import HomeScreen from './src/features/home/HomeScreen';
+import StatsScreen from './src/features/stats/StatsScreen';
 import { hasSavedGameSnapshot } from './src/features/sudoku/data/SavedGameRepository';
 
+const splashArt = require('./src/assets/splash.png');
+
 export default function App() {
-  const [screen, setScreen] = useState<'home' | 'game'>('home');
+  const [screen, setScreen] = useState<'splash' | 'home' | 'game' | 'stats'>('splash');
   const [gameMode, setGameMode] = useState<'new' | 'resume'>('new');
   const [canResume, setCanResume] = useState(false);
 
@@ -26,6 +29,16 @@ export default function App() {
     refreshResumeAvailability();
   }, [refreshResumeAvailability]);
 
+  useEffect(() => {
+    if (screen === 'splash') {
+      const timer = setTimeout(() => {
+        setScreen('home');
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+    return undefined;
+  }, [screen]);
+
   const handleStartNewGame = () => {
     setGameMode('new');
     setScreen('game');
@@ -38,19 +51,41 @@ export default function App() {
     setScreen('home');
     refreshResumeAvailability();
   };
+  const handleOpenStats = () => {
+    setScreen('stats');
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }}>
       <StatusBar barStyle="dark-content" />
-      {screen === 'home' ? (
+      {screen === 'splash' && (
+        <View style={styles.splashContainer}>
+          <Image source={splashArt} style={styles.splashImage} resizeMode="contain" />
+        </View>
+      )}
+      {screen === 'home' && (
         <HomeScreen
           onPressNewGame={handleStartNewGame}
           onPressContinue={canResume ? handleContinueGame : undefined}
+          onPressStats={handleOpenStats}
           continueAvailable={canResume}
         />
-      ) : (
-        <SudokuScreen onGoHome={handleGoHome} mode={gameMode} />
       )}
+      {screen === 'game' && <SudokuScreen onGoHome={handleGoHome} mode={gameMode} />}
+      {screen === 'stats' && <StatsScreen onGoBack={handleGoHome} />}
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  splashContainer: {
+    flex: 1,
+    backgroundColor: '#fff6ea',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  splashImage: {
+    width: '70%',
+    height: '70%',
+  },
+});
