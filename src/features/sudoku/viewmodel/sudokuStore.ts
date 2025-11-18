@@ -1,6 +1,8 @@
 import { create } from 'zustand';
-import { getRandomFromTable } from '../data/PuzzleRepositorySqlite';
+import { getRandomFromTable, Pair } from '../data/PuzzleRepositorySqlite';
+import { fetchRandomPuzzleByDifficulty } from '../data/PuzzleRepositoryFirestore';
 import { log, warn } from '../../../core/logger/log';
+import { appendFileLog } from '../../../core/logger/fileLogger';
 import { clearSavedGameSnapshot, loadSavedGameSnapshot, saveSavedGameSnapshot } from '../data/SavedGameRepository';
 
 const N = 9;
@@ -239,9 +241,7 @@ export const useSudokuStore = create<SudokuState>((set, get) => ({
     }),
 
   loadRandomEasy: async () => {
-    await log('PUZZLE', 'load start', { from: 'table', table: 'easy' });
-    try {
-      const pair = await getRandomFromTable('easy');
+    const applyPair = (pair: Pair) => {
       const puz = to9x9(pair.puzzle);
       const sol = to9x9(pair.solution);
       const vals = clone9(puz);
@@ -261,7 +261,29 @@ export const useSudokuStore = create<SudokuState>((set, get) => ({
         padSelectMode: false,
         selectedPad: null,
       });
-      await log('PUZZLE', 'load success', { id: pair.meta.id, line: pair.meta.line });
+    };
+
+    await log('PUZZLE', 'load start', { from: 'firestore', difficulty: 'easy' });
+    await appendFileLog('loadRandomEasy start');
+    let lastError: Error | null = null;
+    try {
+      const pair = await fetchRandomPuzzleByDifficulty('easy');
+      applyPair(pair);
+      await log('PUZZLE', 'load success (firestore)', { id: pair.meta.id });
+      await appendFileLog('loadRandomEasy success firestore', { id: pair.meta.id });
+      return;
+    } catch (e: any) {
+      lastError = e instanceof Error ? e : new Error(String(e));
+      await warn('PUZZLE', 'firestore load failed', { error: String(lastError?.message ?? lastError) });
+      await appendFileLog('loadRandomEasy firestore failed', { error: String(lastError?.message ?? lastError) });
+    }
+
+    try {
+      await log('PUZZLE', 'fallback to sqlite', { difficulty: 'easy' });
+      const pair = await getRandomFromTable('easy');
+      applyPair(pair);
+      await log('PUZZLE', 'load success (sqlite)', { id: pair.meta.id, line: pair.meta.line });
+      await appendFileLog('loadRandomEasy success sqlite', { id: pair.meta.id, line: pair.meta.line });
     } catch (e: any) {
       const z = empty9();
       set({
@@ -278,7 +300,14 @@ export const useSudokuStore = create<SudokuState>((set, get) => ({
         padSelectMode: false,
         selectedPad: null,
       });
-      await warn('PUZZLE', 'load failed', { error: String(e?.message ?? e) });
+      await warn('PUZZLE', 'load failed', {
+        error: String(e?.message ?? e),
+        previousError: lastError ? String(lastError.message) : undefined,
+      });
+      await appendFileLog('loadRandomEasy failed', {
+        error: String(e?.message ?? e),
+        previousError: lastError ? String(lastError.message) : undefined,
+      });
     }
   },
 

@@ -3,7 +3,7 @@ import { log, warn } from '../../../core/logger/log';
 
 export type Difficulty = 'easy' | 'medium' | 'hard' | 'expert';
 export type Grid = number[][];
-export type Pair = { puzzle: Grid; solution: Grid; meta: { id: number; line?: number; difficulty: Difficulty } };
+export type Pair = { puzzle: Grid; solution: Grid; meta: { id: number | string; line?: number; difficulty: Difficulty } };
 
 const toGrid = (s: string): Grid => {
   // 퍼즐은 0/./숫자 혼합 가능 → 0/1..9만 남기고 81자 보정

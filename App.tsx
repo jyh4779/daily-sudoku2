@@ -3,6 +3,7 @@ import { SafeAreaView, StatusBar, View, Image, StyleSheet } from 'react-native';
 import mobileAds from 'react-native-google-mobile-ads';
 import AppLogger from './src/core/logger/AppLogger';
 import { log } from './src/core/logger/log';
+import { appendFileLog, fileLogPaths } from './src/core/logger/fileLogger';
 import SudokuScreen from './src/features/sudoku/SudokuScreen';
 import HomeScreen from './src/features/home/HomeScreen';
 import StatsScreen from './src/features/stats/StatsScreen';
@@ -19,6 +20,7 @@ export default function App() {
     AppLogger.init();
     void log('APP', 'mounted');
     void mobileAds().initialize();
+    void appendFileLog('app mounted', { logFile: fileLogPaths.file });
   }, []);
 
   const refreshResumeAvailability = useCallback(() => {

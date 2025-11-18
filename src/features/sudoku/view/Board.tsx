@@ -93,7 +93,7 @@ export default function Board({ size }: Props) {
                   fixed && styles.fixedCell,
                   isSel && styles.selectedCell,
                   isWrong && styles.wrongCell,
-                  highlightDigit != null && (
+                  !isWrong && highlightDigit != null && (
                     v === highlightDigit || (v === 0 && (noteMask & (1 << highlightDigit)) !== 0)
                   ) && styles.highlightCell,
                 ]}
@@ -103,7 +103,7 @@ export default function Board({ size }: Props) {
                     styles.text,
                     fixed && styles.fixedText,
                     isWrong && styles.wrongText,
-                    highlightDigit != null && v === highlightDigit && styles.textHighlight,
+                    !isWrong && highlightDigit != null && v === highlightDigit && styles.textHighlight,
                   ]}>
                     {String(v)}
                   </Text>
@@ -117,7 +117,7 @@ export default function Board({ size }: Props) {
                           {on && (
                             <Text style={[
                               styles.noteText,
-                              highlightDigit != null && d === highlightDigit && styles.noteTextHighlight,
+                              !isWrong && highlightDigit != null && d === highlightDigit && styles.noteTextHighlight,
                             ]}>{d}</Text>
                           )}
                         </View>
