@@ -3663,6 +3663,7 @@ __metadata:
     prettier: "npm:2.8.8"
     react: "npm:19.1.0"
     react-native: "npm:0.80.2"
+    react-native-device-info: "npm:^15.0.1"
     react-native-fs: "npm:^2.20.0"
     react-native-google-mobile-ads: "npm:^16.0.0"
     react-native-sqlite-storage: "npm:^6.0.1"
@@ -8966,6 +8967,15 @@ __metadata:
   version: 19.1.1
   resolution: "react-is@npm:19.1.1"
   checksum: 10c0/3dba763fcd69835ae263dcd6727d7ffcc44c1d616f04b7329e67aefdc66a567af4f8dcecdd29454c7a707c968aa1eb85083a83fb616f01675ef25e71cf082f97
+  languageName: node
+  linkType: hard
+
+"react-native-device-info@npm:^15.0.1":
+  version: 15.0.1
+  resolution: "react-native-device-info@npm:15.0.1"
+  peerDependencies:
+    react-native: "*"
+  checksum: 10c0/f33a28b44bc9a67939f2c837ea55c6f59f3096323b5ccc834093bece941d343bad3d86b0faa9340004c2e657abe47fac6cee539d9274f5fabfb5745bfdc77c92
   languageName: node
   linkType: hard
 

@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { SafeAreaView, StatusBar, View, Image, StyleSheet, Alert } from 'react-native';
+import { SafeAreaView, StatusBar, View, Image, StyleSheet, Alert, Text } from 'react-native';
 import mobileAds from 'react-native-google-mobile-ads';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import AppLogger from './src/core/logger/AppLogger';
 import { log } from './src/core/logger/log';
 import { appendFileLog, fileLogPaths } from './src/core/logger/fileLogger';
@@ -12,16 +13,39 @@ import { hasSavedGameSnapshot } from './src/features/sudoku/data/SavedGameReposi
 
 const splashArt = require('./src/assets/splash.png');
 
+type ScreenState = 'splash' | 'home' | 'game' | 'stats';
+type GuestUser = { type: 'guest'; id: string };
+const GUEST_ID_KEY = '@dailysudoku/guestId';
+
 export default function App() {
-  const [screen, setScreen] = useState<'splash' | 'home' | 'game' | 'stats'>('splash');
+  const [screen, setScreen] = useState<ScreenState>('splash');
   const [gameMode, setGameMode] = useState<'new' | 'resume'>('new');
   const [canResume, setCanResume] = useState(false);
+  const [user, setUser] = useState<GuestUser | null>(null);
 
   useEffect(() => {
     AppLogger.init();
     void log('APP', 'mounted');
     void mobileAds().initialize();
     void appendFileLog('app mounted', { logFile: fileLogPaths.file });
+  }, []);
+
+  useEffect(() => {
+    const initGuestUser = async () => {
+      try {
+        let id = await AsyncStorage.getItem(GUEST_ID_KEY);
+        if (!id) {
+          id = `guest-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+          await AsyncStorage.setItem(GUEST_ID_KEY, id);
+        }
+        setUser({ type: 'guest', id });
+        await appendFileLog('guest user ready', { id });
+      } catch (error) {
+        console.warn('Failed to prepare guest user', error);
+        await appendFileLog('guest user error', { error: String((error as Error)?.message ?? error) });
+      }
+    };
+    void initGuestUser();
   }, []);
 
   const refreshResumeAvailability = useCallback(() => {
@@ -35,14 +59,14 @@ export default function App() {
   }, [refreshResumeAvailability]);
 
   useEffect(() => {
-    if (screen === 'splash') {
+    if (screen === 'splash' && user) {
       const timer = setTimeout(() => {
         setScreen('home');
       }, 2000);
       return () => clearTimeout(timer);
     }
     return undefined;
-  }, [screen]);
+  }, [screen, user]);
 
   const startNewGame = () => {
     setGameMode('new');
@@ -76,6 +100,9 @@ export default function App() {
       {screen === 'splash' && (
         <View style={styles.splashContainer}>
           <Image source={splashArt} style={styles.splashImage} resizeMode="contain" />
+          <Text style={styles.splashStatus}>
+            {user ? `Guest ID: ${user.id}` : 'Preparing guest account...'}
+          </Text>
         </View>
       )}
       {screen === 'home' && (
@@ -102,5 +129,10 @@ const styles = StyleSheet.create({
   splashImage: {
     width: '70%',
     height: '70%',
+  },
+  splashStatus: {
+    marginTop: 16,
+    fontSize: 14,
+    color: '#4f4f57',
   },
 });
