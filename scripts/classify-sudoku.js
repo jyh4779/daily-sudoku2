@@ -5,8 +5,7 @@
  * Usage:
  *   node scripts/classify-sudoku.js [puzzleFile] [--solutions=path] [--limit=10] [--output=path] [--env=path] [--verbose]
  *
- * If --env is omitted, sudoku.env in the project root is used to locate the puzzle/solution files
- * and to seed the starting index per difficulty level.
+ * If --env is omitted, sudoku.env in the project root is used to locate the puzzle/solution files.
  */
 const fs = require('fs');
 const path = require('path');
@@ -302,20 +301,6 @@ const classifyPuzzle = (normalized) => {
   };
 };
 
-const loadIndexSeed = (key) => {
-  const value = parseInt(envConfig[key] || '1', 10);
-  return Number.isNaN(value) ? 1 : Math.max(1, value);
-};
-
-const nextIndex = {
-  easy: loadIndexSeed('EASY_INDEX'),
-  medium: loadIndexSeed('MEDIUM_INDEX'),
-  hard: loadIndexSeed('HARD_INDEX'),
-  hell: loadIndexSeed('HELL_INDEX'),
-};
-
-const padIndex = (value) => String(value).padStart(5, '0');
-
 const stats = {
   easy: 0,
   medium: 0,
@@ -369,21 +354,15 @@ rl.on('line', (line) => {
   processed += 1;
   stats[difficulty] += 1;
 
-  const docId = `${difficulty}_${padIndex(nextIndex[difficulty])}`;
-  nextIndex[difficulty] += 1;
-
   results.push({
-    documentId: docId,
-    fields: {
-      board: normalized,
-      difficulty,
-      solution: solutionNormalized,
-    },
+    board: normalized,
+    difficulty,
+    solution: solutionNormalized,
   });
 
   if (verbose) {
     console.log(
-      `${processed}\tdoc=${docId}\tclues=${clues}\tzeros=${zeros}\tlzRow=${metrics.longestZeroRow}\tlzCol=${metrics.longestZeroColumn}\tminRow=${metrics.minRowClues}\tminCol=${metrics.minColClues}\tminBox=${metrics.minBoxClues}\tcRows=${metrics.centralRowClues}\tcCols=${metrics.centralColClues}\tscore=${score
+      `${processed}\tclues=${clues}\tzeros=${zeros}\tlzRow=${metrics.longestZeroRow}\tlzCol=${metrics.longestZeroColumn}\tminRow=${metrics.minRowClues}\tminCol=${metrics.minColClues}\tminBox=${metrics.minBoxClues}\tcRows=${metrics.centralRowClues}\tcCols=${metrics.centralColClues}\tscore=${score
         .toFixed(2)
         .padEnd(4, '0')}\tdifficulty=${difficulty}`
     );
