@@ -30,6 +30,7 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode }) => {
   const resetElapsed = useSudokuStore(s => s.resetElapsed);
   const incrementElapsed = useSudokuStore(s => s.incrementElapsed);
   const loadSavedGameFromDb = useSudokuStore(s => s.loadSavedGameFromDb);
+  const clearSavedProgress = useSudokuStore(s => s.clearSavedProgress);
   const [isPaused, setIsPaused] = useState(false);
   const handleGoHome = onGoHome ?? (() => {});
 
@@ -109,6 +110,12 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode }) => {
       android: ADMOB_IDS.android.banner,
       ios: ADMOB_IDS.ios.banner,
     }) ?? ADMOB_IDS.android.banner;
+
+  useEffect(() => {
+    if (isSolved) {
+      void (clearSavedProgress?.() ?? Promise.resolve());
+    }
+  }, [isSolved, clearSavedProgress]);
 
   return (
     <View style={styles.screen}>
@@ -361,13 +368,3 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 });
-
-
-
-
-
-
-
-
-
-

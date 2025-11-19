@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { SafeAreaView, StatusBar, View, Image, StyleSheet } from 'react-native';
+import { SafeAreaView, StatusBar, View, Image, StyleSheet, Alert } from 'react-native';
 import mobileAds from 'react-native-google-mobile-ads';
 import AppLogger from './src/core/logger/AppLogger';
 import { log } from './src/core/logger/log';
 import { appendFileLog, fileLogPaths } from './src/core/logger/fileLogger';
+import { TEXTS } from './src/config/texts';
 import SudokuScreen from './src/features/sudoku/SudokuScreen';
 import HomeScreen from './src/features/home/HomeScreen';
 import StatsScreen from './src/features/stats/StatsScreen';
@@ -43,9 +44,19 @@ export default function App() {
     return undefined;
   }, [screen]);
 
-  const handleStartNewGame = () => {
+  const startNewGame = () => {
     setGameMode('new');
     setScreen('game');
+  };
+  const handleStartNewGame = () => {
+    if (canResume) {
+      Alert.alert(TEXTS.home.newGame, TEXTS.home.newGameWarning, [
+        { text: TEXTS.common.cancel, style: 'cancel' },
+        { text: TEXTS.common.confirm, onPress: startNewGame },
+      ]);
+    } else {
+      startNewGame();
+    }
   };
   const handleContinueGame = () => {
     setGameMode('resume');
