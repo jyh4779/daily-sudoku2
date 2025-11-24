@@ -4,7 +4,7 @@ import Svg, { Path, Rect, G } from 'react-native-svg';
 import { useSudokuStore } from '../viewmodel/sudokuStore';
 import EraserIcon from '../../../assets/icons/eraser.svg';
 import UndoIcon from '../../../assets/icons/undo.svg';
-import { TEXTS } from '../../../config/texts';
+import { useTexts } from '../../../config/texts';
 
 type Action = 'undo' | 'erase' | 'note' | 'hint' | 'padmode';
 
@@ -98,12 +98,13 @@ const ActionButton = ({ action, label, active, onPress }: BtnProps) => {
 };
 
 export default function ActionButtons() {
+  const texts = useTexts();
   const noteMode = useSudokuStore(s => s.noteMode ?? false);
-  const toggleNoteMode = useSudokuStore(s => s.toggleNoteMode ?? (() => {}));
+  const toggleNoteMode = useSudokuStore(s => s.toggleNoteMode ?? (() => { }));
   const undo = useSudokuStore(s => s.undo);
   const eraseSelected = useSudokuStore(s => s.eraseSelected);
   const padSelectMode = useSudokuStore(s => s.padSelectMode ?? false);
-  const togglePadSelectMode = useSudokuStore(s => s.togglePadSelectMode ?? (() => {}));
+  const togglePadSelectMode = useSudokuStore(s => s.togglePadSelectMode ?? (() => { }));
 
   const onUndo = () => {
     if (undo) undo();
@@ -119,11 +120,11 @@ export default function ActionButtons() {
 
   return (
     <View style={styles.row}>
-      <ActionButton action="undo" label={TEXTS.game.actions.undo} onPress={onUndo} />
-      <ActionButton action="erase" label={TEXTS.game.actions.erase} onPress={onErase} />
-      <ActionButton action="hint" label={TEXTS.game.actions.hint} onPress={onHint} />
-      <ActionButton action="note" label={TEXTS.game.actions.note} onPress={onNote} active={noteMode} />
-      <ActionButton action="padmode" label={TEXTS.game.actions.padMode} onPress={onPadMode} active={padSelectMode} />
+      <ActionButton action="undo" label={texts.game.actions.undo} onPress={onUndo} />
+      <ActionButton action="erase" label={texts.game.actions.erase} onPress={onErase} />
+      <ActionButton action="hint" label={texts.game.actions.hint} onPress={onHint} />
+      <ActionButton action="note" label={texts.game.actions.note} onPress={onNote} active={noteMode} />
+      <ActionButton action="padmode" label={texts.game.actions.padMode} onPress={onPadMode} active={padSelectMode} />
     </View>
   );
 }

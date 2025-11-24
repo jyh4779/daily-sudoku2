@@ -1,7 +1,7 @@
 import React from 'react';
-import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Platform } from 'react-native';
+import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Platform, BackHandler, Alert } from 'react-native';
 import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
-import { TEXTS } from '../../config/texts';
+import { useTexts } from '../../config/texts';
 import { ADMOB_IDS, BANNER_RESERVED_SPACE } from '../../config/admob';
 
 type HomeScreenProps = {
@@ -12,7 +12,7 @@ type HomeScreenProps = {
   continueAvailable?: boolean;
 };
 
-const noop = () => {};
+const noop = () => { };
 
 const HomeScreen: React.FC<HomeScreenProps> = ({
   onPressNewGame,
@@ -21,6 +21,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   onPressSettings,
   continueAvailable = false,
 }) => {
+  const texts = useTexts();
   const { width } = useWindowDimensions();
   const horizontalPadding = 24;
   const availableWidth = width - horizontalPadding * 2;
@@ -28,11 +29,29 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   const accentWidth = Math.min(availableWidth * 0.82, 260);
   const accentSidePadding = horizontalPadding + (availableWidth - accentWidth) / 2;
 
+  React.useEffect(() => {
+    const backAction = () => {
+      Alert.alert(texts.appName, 'Are you sure you want to exit?', [
+        {
+          text: texts.common.cancel,
+          onPress: () => null,
+          style: 'cancel',
+        },
+        { text: texts.common.confirm, onPress: () => BackHandler.exitApp() },
+      ]);
+      return true;
+    };
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+
+    return () => backHandler.remove();
+  }, [texts]);
+
   const buttons = [
-    { label: TEXTS.home.newGame, icon: '+', color: '#f4b2cf', onPress: onPressNewGame, disabled: false },
-    { label: TEXTS.home.continue, icon: '▶', color: '#b8e6ff', onPress: onPressContinue, disabled: !continueAvailable },
-    { label: TEXTS.home.stats, icon: '≣', color: '#d7cdfd', onPress: onPressStats, disabled: false },
-    { label: TEXTS.home.settings, icon: '⚙', color: '#ffd8ad', onPress: onPressSettings, disabled: false },
+    { label: texts.home.newGame, icon: '+', color: '#f4b2cf', onPress: onPressNewGame, disabled: false },
+    { label: texts.home.continue, icon: '▶', color: '#b8e6ff', onPress: onPressContinue, disabled: !continueAvailable },
+    { label: texts.home.stats, icon: '≣', color: '#d7cdfd', onPress: onPressStats, disabled: false },
+    { label: texts.home.settings, icon: '⚙', color: '#ffd8ad', onPress: onPressSettings, disabled: false },
   ];
   const bannerUnitId =
     Platform.select({
@@ -47,7 +66,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
 
         <View style={styles.content}>
           <View style={styles.topSection}>
-            <Text style={styles.title}>{TEXTS.appName}</Text>
+            <Text style={styles.title}>{texts.appName}</Text>
           </View>
 
           <View style={styles.centerSection}>

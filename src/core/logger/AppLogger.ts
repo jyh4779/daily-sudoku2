@@ -31,9 +31,14 @@ export class AppLogger {
     await AppLogger.append(tag, `ERROR: ${msg}`, extra);
   }
 
+  static async warn(tag: string, msg: string, extra?: Extra): Promise<void> {
+    await AppLogger.append(tag, `WARN: ${msg}`, extra);
+  }
+
   private static async append(tag: string, msg: string, extra?: Extra) {
     const ts = new Date().toISOString();
     const line = `${ts} [${tag}] ${msg}${extra ? ' ' + JSON.stringify(extra) : ''}\n`;
+
     try {
       if (!AppLogger.initialized) {
         const exists = await RNFS.exists(AppLogger.dir);

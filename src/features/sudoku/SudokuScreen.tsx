@@ -1,25 +1,31 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, StyleSheet, LayoutChangeEvent, useWindowDimensions, Pressable, Platform } from 'react-native';
+import { View, Text, StyleSheet, LayoutChangeEvent, useWindowDimensions, Pressable, Platform, BackHandler } from 'react-native';
 import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
 import Board from './view/Board';
 import NumberPad from './view/NumberPad';
 import ActionButtons from './view/ActionButtons';
 import { useSudokuStore } from './viewmodel/sudokuStore';
 import AspectFitContainer from '../../components/layout/AspectFitContainer';
-import { TEXTS } from '../../config/texts';
+import { useTexts } from '../../config/texts';
 import { ADMOB_IDS, BANNER_RESERVED_SPACE } from '../../config/admob';
+import { getCurrentUser } from '../../core/auth/AuthRepository';
+import { saveGameResult } from '../stats/data/StatsRepository';
+import TutorialOverlay from './view/TutorialOverlay';
+import { TUTORIAL_PUZZLE, TUTORIAL_SOLUTION } from './data/tutorialData';
 
 type SudokuScreenProps = {
   onGoHome?: () => void;
-  mode: 'new' | 'resume';
+  mode: 'new' | 'resume' | 'tutorial';
 };
 
 const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode }) => {
+  const texts = useTexts();
   const { width } = useWindowDimensions();
   const GUTTER = Math.max(16, Math.min(24, Math.round(width * 0.04)));
 
   const [boardBox, setBoardBox] = useState<{ w: number; h: number } | null>(null);
   const loadRandomEasy = useSudokuStore(s => s.loadRandomEasy);
+  const loadTutorialPuzzle = useSudokuStore(s => s.loadTutorialPuzzle);
   const mistakes = useSudokuStore(s => s.mistakes);
   const mistakeLimit = useSudokuStore(s => s.mistakeLimit);
   const values = useSudokuStore(s => s.values);
@@ -32,7 +38,9 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode }) => {
   const loadSavedGameFromDb = useSudokuStore(s => s.loadSavedGameFromDb);
   const clearSavedProgress = useSudokuStore(s => s.clearSavedProgress);
   const [isPaused, setIsPaused] = useState(false);
-  const handleGoHome = onGoHome ?? (() => {});
+  const handleGoHome = onGoHome ?? (() => { });
+
+
 
   useEffect(() => {
     let isMounted = true;
@@ -43,6 +51,8 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode }) => {
           if (!loaded) {
             await loadRandomEasy();
           }
+        } else if (mode === 'tutorial') {
+          loadTutorialPuzzle(TUTORIAL_PUZZLE, TUTORIAL_SOLUTION);
         } else {
           await loadRandomEasy();
         }
@@ -56,7 +66,7 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode }) => {
     return () => {
       isMounted = false;
     };
-  }, [mode, loadRandomEasy, loadSavedGameFromDb]);
+  }, [mode, loadRandomEasy, loadSavedGameFromDb, loadTutorialPuzzle]);
 
   const onLayoutBoardArea = (e: LayoutChangeEvent) => {
     const { width: w, height: h } = e.nativeEvent.layout;
@@ -86,11 +96,53 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode }) => {
     return true;
   }, [values, solution, allFilled]);
   const isLost = mistakes >= mistakeLimit;
+
   useEffect(() => {
-    if (isLost || isSolved || isPaused) return;
-    const id = setInterval(() => incrementElapsed(), 1000);
-    return () => clearInterval(id);
-  }, [isLost, isSolved, isPaused, incrementElapsed]);
+    const backAction = () => {
+      if (!isPaused && !isSolved && !isLost) {
+        setIsPaused(true);
+        return true; // Prevent default behavior (exit)
+      }
+      return false;
+    };
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+    return () => backHandler.remove();
+  }, [isPaused, isSolved, isLost, handleGoHome]);
+
+  const [startTime, setStartTime] = useState(Date.now());
+
+  useEffect(() => {
+    setStartTime(Date.now());
+  }, [mode, loadRandomEasy, restartCurrent]);
+
+  // Save stats when game ends
+  useEffect(() => {
+    if (isSolved || isLost) {
+      const user = getCurrentUser();
+      if (user) {
+        const endTime = Date.now();
+        saveGameResult({
+          userId: user.uid,
+          difficulty: 'easy',
+          mistakes: mistakes,
+          startTime: Math.floor(startTime / 1000),
+          endTime: Math.floor(endTime / 1000),
+          durationSeconds: elapsedSec,
+          result: isSolved ? 'win' : 'loss',
+        });
+      }
+    }
+  }, [isSolved, isLost]);
+
+  useEffect(() => {
+    if (isPaused || isSolved || isLost) return;
+    const timer = setInterval(() => {
+      incrementElapsed();
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [isPaused, isSolved, isLost, incrementElapsed]);
+
   const timeText = useMemo(() => {
     const h = Math.floor(elapsedSec / 3600);
     const m = Math.floor((elapsedSec % 3600) / 60);
@@ -98,8 +150,20 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode }) => {
     const pad = (n: number) => (n < 10 ? `0${n}` : String(n));
     return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
   }, [elapsedSec]);
-  const handleRestart = () => { restartCurrent(); resetElapsed(); setIsPaused(false); };
-  const handleNewGame = () => { loadRandomEasy().then(() => { resetElapsed(); setIsPaused(false); }); };
+
+  const handleRestart = () => {
+    restartCurrent();
+    resetElapsed();
+    setIsPaused(false);
+    setStartTime(Date.now());
+  };
+  const handleNewGame = () => {
+    loadRandomEasy().then(() => {
+      resetElapsed();
+      setIsPaused(false);
+      setStartTime(Date.now());
+    });
+  };
   const handlePause = () => {
     if (isLost || isSolved) return;
     setIsPaused(true);
@@ -136,26 +200,26 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode }) => {
 
           return (
             <View style={{ width: stageW, height: stageH }}>
-            <View style={[styles.topBar, { height: unit }]}>
-              <Text style={styles.topLeft}>{TEXTS.game.mistakeCounter(mistakes, mistakeLimit)}</Text>
-              <Text style={styles.topTitle}>{timeText}</Text>
-              <View style={styles.topActions}>
-                <Pressable
-                  style={[styles.pauseButton, (isPaused || isLost || isSolved) && styles.pauseButtonDisabled]}
-                  onPress={handlePause}
-                  disabled={isPaused || isLost || isSolved}
-                >
-                  <View style={styles.pauseBar} />
-                  <View style={styles.pauseBar} />
-                </Pressable>
-                <Pressable style={styles.homeButton} onPress={handleGoHome}>
-                  <Text style={styles.homeIcon}>⌂</Text>
-                </Pressable>
+              <View style={[styles.topBar, { height: unit }]}>
+                <Text style={styles.topLeft}>{texts.game.mistakeCounter(mistakes, mistakeLimit)}</Text>
+                <Text style={styles.topTitle}>{timeText}</Text>
+                <View style={styles.topActions}>
+                  <Pressable
+                    style={[styles.pauseButton, (isPaused || isLost || isSolved) && styles.pauseButtonDisabled]}
+                    onPress={handlePause}
+                    disabled={isPaused || isLost || isSolved}
+                  >
+                    <View style={styles.pauseBar} />
+                    <View style={styles.pauseBar} />
+                  </Pressable>
+                  <Pressable style={styles.homeButton} onPress={handleGoHome}>
+                    <Text style={styles.homeIcon}>⌂</Text>
+                  </Pressable>
+                </View>
               </View>
-            </View>
 
               <View style={[styles.difficultyWrap, { height: unit }]}>
-                <Text style={styles.difficulty}>{TEXTS.game.difficulty.easy}</Text>
+                <Text style={styles.difficulty}>{texts.game.difficulty.easy}</Text>
               </View>
 
               <View style={[styles.boardArea, { height: unit * 10 }]} onLayout={onLayoutBoardArea}>
@@ -180,9 +244,9 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode }) => {
                 </View>
               </View>
 
-            <View style={[styles.tools, { height: unit }]}>
-              <ActionButtons />
-            </View>
+              <View style={[styles.tools, { height: unit }]}>
+                <ActionButtons />
+              </View>
 
               {!isPaused && (
                 <View style={[styles.padArea, { height: unit * 3 }]}>
@@ -199,41 +263,45 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode }) => {
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>
               {isPaused
-                ? TEXTS.game.overlayTitle.pause
+                ? texts.game.overlayTitle.pause
                 : isLost
-                ? TEXTS.game.overlayTitle.loss
-                : TEXTS.game.overlayTitle.success}
+                  ? texts.game.overlayTitle.loss
+                  : texts.game.overlayTitle.success}
             </Text>
             {isPaused ? (
               <View style={styles.modalBtns}>
                 <Pressable style={styles.modalBtn} onPress={handleResume}>
-                  <Text style={styles.modalBtnText}>{TEXTS.game.overlayButtons.continue}</Text>
+                  <Text style={styles.modalBtnText}>{texts.game.overlayButtons.continue}</Text>
                 </Pressable>
-                <Pressable style={styles.modalBtn} onPress={handleRestart}>
-                  <Text style={styles.modalBtnText}>{TEXTS.game.overlayButtons.restart}</Text>
+                <Pressable style={styles.modalBtn} onPress={handleGoHome}>
+                  <Text style={styles.modalBtnText}>{texts.game.overlayButtons.home}</Text>
                 </Pressable>
               </View>
             ) : isLost ? (
               <View style={styles.modalBtns}>
                 <Pressable style={styles.modalBtn} onPress={handleRestart}>
-                  <Text style={styles.modalBtnText}>{TEXTS.game.overlayButtons.restart}</Text>
+                  <Text style={styles.modalBtnText}>{texts.game.overlayButtons.restart}</Text>
                 </Pressable>
                 <Pressable style={styles.modalBtn} onPress={resetMistakes}>
-                  <Text style={styles.modalBtnText}>{TEXTS.game.overlayButtons.continue}</Text>
+                  <Text style={styles.modalBtnText}>{texts.game.overlayButtons.continue}</Text>
                 </Pressable>
               </View>
             ) : (
               <View style={styles.modalBtns}>
                 <Pressable style={styles.modalBtn} onPress={handleNewGame}>
-                  <Text style={styles.modalBtnText}>{TEXTS.game.overlayButtons.newGame}</Text>
+                  <Text style={styles.modalBtnText}>{texts.game.overlayButtons.newGame}</Text>
                 </Pressable>
-              <Pressable style={styles.modalBtn} onPress={handleGoHome}>
-                <Text style={styles.modalBtnText}>{TEXTS.game.overlayButtons.home}</Text>
-              </Pressable>
+                <Pressable style={styles.modalBtn} onPress={handleGoHome}>
+                  <Text style={styles.modalBtnText}>{texts.game.overlayButtons.home}</Text>
+                </Pressable>
               </View>
             )}
           </View>
         </View>
+      )}
+
+      {mode === 'tutorial' && (
+        <TutorialOverlay onComplete={handleGoHome} />
       )}
 
       <View style={styles.bannerArea}>

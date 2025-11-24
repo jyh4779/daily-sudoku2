@@ -57,6 +57,11 @@ type SudokuState = {
   togglePadSelectMode?: () => void;
   selectedPad?: number | null;
   setSelectedPad?: (n: number | null) => void;
+
+  // Tutorial state
+  tutorialHighlights: RC[] | null;
+  setTutorialHighlights: (highlights: RC[] | null) => void;
+  loadTutorialPuzzle: (puzzle: number[][], solution: number[][]) => void;
 };
 
 export const useSudokuStore = create<SudokuState>((set, get) => ({
@@ -78,6 +83,29 @@ export const useSudokuStore = create<SudokuState>((set, get) => ({
   togglePadSelectMode: () => set(s => ({ padSelectMode: !s.padSelectMode, selectedPad: !s.padSelectMode ? null : s.selectedPad })),
   selectedPad: null,
   setSelectedPad: (n) => set({ selectedPad: n }),
+
+  tutorialHighlights: null,
+  setTutorialHighlights: (highlights) => set({ tutorialHighlights: highlights }),
+  loadTutorialPuzzle: (puzzle, solution) => {
+    const vals = clone9(puzzle);
+    set({
+      puzzle,
+      solution,
+      values: vals,
+      grid: vals,
+      notes: empty9(),
+      selected: null,
+      difficulty: 'easy',
+      mistakes: 0,
+      undoStack: [],
+      elapsedSec: 0,
+      hasLoadedGame: false,
+      noteMode: false,
+      padSelectMode: false,
+      selectedPad: null,
+      tutorialHighlights: null,
+    });
+  },
 
   setSelected: (rc) => set({ selected: rc }),
 

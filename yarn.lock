@@ -2801,6 +2801,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@react-native-firebase/auth@npm:^23.5.0":
+  version: 23.5.0
+  resolution: "@react-native-firebase/auth@npm:23.5.0"
+  dependencies:
+    plist: "npm:^3.1.0"
+  peerDependencies:
+    "@react-native-firebase/app": 23.5.0
+    expo: ">=47.0.0"
+  peerDependenciesMeta:
+    expo:
+      optional: true
+  checksum: 10c0/8a6933f2f787ef0141b672691e3dd48752ce585d0d23a6c8fe57d287b610afba9aebf75d5e3c2a1dccde3512b573cc8b5335e8fa208deae42b43149b3d419091
+  languageName: node
+  linkType: hard
+
 "@react-native-firebase/firestore@npm:^23.5.0":
   version: 23.5.0
   resolution: "@react-native-firebase/firestore@npm:23.5.0"
@@ -2809,6 +2824,20 @@ __metadata:
   peerDependencies:
     "@react-native-firebase/app": 23.5.0
   checksum: 10c0/2b0d0722c5f2b3aeea0d1752f13d1311c30e22ad1cf5281b009d7048813d409ece382e261d7e12b30e95bfc6b93b87d8550533e850b657a6553448d37bf2cd52
+  languageName: node
+  linkType: hard
+
+"@react-native-google-signin/google-signin@npm:^16.0.0":
+  version: 16.0.0
+  resolution: "@react-native-google-signin/google-signin@npm:16.0.0"
+  peerDependencies:
+    expo: ">=52.0.40"
+    react: "*"
+    react-native: "*"
+  peerDependenciesMeta:
+    expo:
+      optional: true
+  checksum: 10c0/1ef58e78e1807e691c1be5926393bbc1d31bcc0db549dcc7f7a0bc016cf8590187679fcde5746497cb7f2bb417b78298f04e2119d835180f68eb0bba02cff36c
   languageName: node
   linkType: hard
 
@@ -3634,6 +3663,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@xmldom/xmldom@npm:^0.8.8":
+  version: 0.8.11
+  resolution: "@xmldom/xmldom@npm:0.8.11"
+  checksum: 10c0/e768623de72c95d3dae6b5da8e33dda0d81665047811b5498d23a328d45b13feb5536fe921d0308b96a4a8dd8addf80b1f6ef466508051c0b581e63e0dc74ed5
+  languageName: node
+  linkType: hard
+
 "DailySudoku@workspace:.":
   version: 0.0.0-use.local
   resolution: "DailySudoku@workspace:."
@@ -3646,7 +3682,9 @@ __metadata:
     "@react-native-community/cli-platform-android": "npm:19.1.1"
     "@react-native-community/cli-platform-ios": "npm:19.1.1"
     "@react-native-firebase/app": "npm:^23.5.0"
+    "@react-native-firebase/auth": "npm:^23.5.0"
     "@react-native-firebase/firestore": "npm:^23.5.0"
+    "@react-native-google-signin/google-signin": "npm:^16.0.0"
     "@react-native/babel-preset": "npm:0.80.2"
     "@react-native/eslint-config": "npm:0.80.2"
     "@react-native/metro-config": "npm:0.80.2"
@@ -8715,6 +8753,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"plist@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "plist@npm:3.1.0"
+  dependencies:
+    "@xmldom/xmldom": "npm:^0.8.8"
+    base64-js: "npm:^1.5.1"
+    xmlbuilder: "npm:^15.1.1"
+  checksum: 10c0/db19ba50faafc4103df8e79bcd6b08004a56db2a9dd30b3e5c8b0ef30398ef44344a674e594d012c8fc39e539a2b72cb58c60a76b4b4401cbbc7c8f6b028d93d
+  languageName: node
+  linkType: hard
+
 "possible-typed-array-names@npm:^1.0.0":
   version: 1.1.0
   resolution: "possible-typed-array-names@npm:1.1.0"
@@ -10730,6 +10779,13 @@ __metadata:
     utf-8-validate:
       optional: true
   checksum: 10c0/bd7d5f4aaf04fae7960c23dcb6c6375d525e00f795dd20b9385902bd008c40a94d3db3ce97d878acc7573df852056ca546328b27b39f47609f80fb22a0a9b61d
+  languageName: node
+  linkType: hard
+
+"xmlbuilder@npm:^15.1.1":
+  version: 15.1.1
+  resolution: "xmlbuilder@npm:15.1.1"
+  checksum: 10c0/665266a8916498ff8d82b3d46d3993913477a254b98149ff7cff060d9b7cc0db7cf5a3dae99aed92355254a808c0e2e3ec74ad1b04aa1061bdb8dfbea26c18b8
   languageName: node
   linkType: hard
 
