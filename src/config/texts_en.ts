@@ -1,0 +1,127 @@
+export const TEXTS_EN = {
+    common: {
+        confirm: 'Confirm',
+        cancel: 'Cancel',
+    },
+    appName: 'Daily Sudoku',
+    home: {
+        newGame: 'New Game',
+        continue: 'Resume',
+        stats: 'Stats',
+        settings: 'Settings',
+        newGameWarning: 'You have a saved game. Starting a new game will overwrite it. Do you want to continue?',
+    },
+    game: {
+        difficulty: {
+            easy: 'Easy',
+            medium: 'Medium',
+            hard: 'Hard',
+            expert: 'Expert',
+        },
+        overlayTitle: {
+            pause: 'Pause',
+            loss: 'Game Over',
+            success: 'Success',
+        },
+        overlayButtons: {
+            continue: 'Continue',
+            restart: 'Restart',
+            newGame: 'New Game',
+            home: 'Home',
+        },
+        mistakeCounter: (mistakes: number, limit: number) => `Mistakes ${mistakes}/${limit}`,
+        actions: {
+            undo: 'Undo',
+            erase: 'Erase',
+            hint: 'Hint',
+            note: 'Note',
+            padMode: 'Pad Mode',
+        },
+    },
+    stats: {
+        title: 'My Statistics',
+        tabs: {
+            week: 'This Week',
+            month: 'This Month',
+            allTime: 'All Time',
+        },
+        summary: {
+            gamesPlayed: 'Games Played',
+            winRate: 'Win Rate',
+            winStreak: 'Win Streak',
+            avgTime: 'Avg. Time',
+        },
+        ratio: {
+            title: 'Win / Loss Ratio',
+            winsLabel: 'Wins',
+            lossesLabel: 'Losses',
+        },
+        completed: {
+            title: 'Completed Games',
+            subtitle: 'All Time',
+        },
+        bestTimes: {
+            title: 'Best Times',
+            easy: 'Easy',
+            medium: 'Medium',
+            hard: 'Hard',
+            expert: 'Expert',
+        },
+    },
+    settings: {
+        title: 'Settings',
+        language: 'Language',
+        account: 'Account Info',
+        userId: 'User ID',
+        type: 'Type',
+        guest: 'Guest (Anonymous)',
+        google: 'Google Account',
+        linkGoogle: 'Link your account to Google to save your progress across devices.',
+        signOut: 'Sign Out',
+        success: 'Success',
+        linked: 'Account linked successfully!',
+        loginFailed: 'Login Failed',
+        loginFailedMsg: 'Could not sign in with Google.',
+        loggedOut: 'Logged Out',
+        loggedOutMsg: 'You have been successfully signed out. The app will now close.',
+        error: 'Error',
+        signOutFailed: 'Failed to sign out.',
+    },
+    tutorial: {
+        step1: {
+            title: 'Goal',
+            text: 'Sudoku is a puzzle where you fill a 9x9 grid with numbers.\nEach cell contains a number from 1 to 9.',
+        },
+        step2: {
+            title: 'Row Rule',
+            text: 'Each row must contain the numbers 1 to 9,\nwithout repetitions.\n\nTap an empty cell to fill it.',
+        },
+        step3: {
+            title: 'Column Rule',
+            text: 'Each column must also contain the numbers 1 to 9,\nwithout repetitions.',
+        },
+        step4: {
+            title: 'Box Rule',
+            text: 'Each 3x3 box outlined in bold must contain\nthe numbers 1 to 9 without repetitions.',
+        },
+        step5: {
+            title: 'Basic Strategy (Cross-Hatching)',
+            text: 'This is the most important strategy!\nLook at the top-right box.\nThe number 5 in other boxes blocks rows and columns,\nleaving only one possible spot for 5 in this box.',
+        },
+        step6: {
+            title: 'Controls & Notes',
+            text: 'Tap the number pad to input numbers.\nTap the pencil icon to toggle Note Mode,\nallowing you to write small candidate numbers.',
+        },
+        step7: {
+            title: 'Mistakes',
+            text: 'Entering a wrong number counts as a mistake.\n3 mistakes will end the game!\n(But it\'s okay in this tutorial)',
+        },
+        buttons: {
+            prev: 'Prev',
+            next: 'Next',
+            complete: 'Complete',
+        },
+    },
+};
+
+export type TextResources = typeof TEXTS_EN;
