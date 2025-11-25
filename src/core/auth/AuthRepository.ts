@@ -32,7 +32,15 @@ export const signInWithGoogle = async () => {
     await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
     const signInResult = await GoogleSignin.signIn();
 
-    let idToken = signInResult.data?.idToken;
+    // If sign-in was cancelled or failed to return data, throw an error
+    if (!signInResult.data) {
+      const error = new Error('Sign in cancelled or failed');
+      // @ts-ignore
+      error.code = statusCodes.SIGN_IN_CANCELLED;
+      throw error;
+    }
+
+    let idToken = signInResult.data.idToken;
     if (!idToken) {
       const tokens = await GoogleSignin.getTokens();
       idToken = tokens.idToken;

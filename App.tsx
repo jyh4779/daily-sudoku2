@@ -1,11 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { SafeAreaView, StatusBar, View, Image, StyleSheet, Alert, Text } from 'react-native';
 import mobileAds from 'react-native-google-mobile-ads';
-import { GoogleSigninButton } from '@react-native-google-signin/google-signin';
+import { GoogleSigninButton, statusCodes } from '@react-native-google-signin/google-signin';
 import AppLogger from './src/core/logger/AppLogger';
 import { log } from './src/core/logger/log';
 import { appendFileLog, fileLogPaths } from './src/core/logger/fileLogger';
-import { TEXTS } from './src/config/texts';
+import { useTexts } from './src/config/texts';
 import SudokuScreen from './src/features/sudoku/SudokuScreen';
 import HomeScreen from './src/features/home/HomeScreen';
 import StatsScreen from './src/features/stats/StatsScreen';
@@ -13,6 +13,8 @@ import SettingsScreen from './src/features/settings/SettingsScreen';
 import { hasSavedGameSnapshot, loadSavedGameSnapshot } from './src/features/sudoku/data/SavedGameRepository';
 import { initGoogleSignin, signInWithGoogle, getCurrentUser, signInAnonymously, waitForAuthInit } from './src/core/auth/AuthRepository';
 import { saveGameResult } from './src/features/stats/data/StatsRepository';
+import { checkAppVersion } from './src/core/version/VersionCheckRepository';
+import { Linking } from 'react-native';
 
 const splashArt = require('./src/assets/splash.png');
 
@@ -21,12 +23,14 @@ type UserType = 'guest' | 'google';
 type AppUser = { type: UserType; id: string; name?: string | null };
 
 export default function App() {
+  const texts = useTexts();
   const [screen, setScreen] = useState<ScreenState>('splash');
   const [gameMode, setGameMode] = useState<'new' | 'resume' | 'tutorial'>('new');
   const [canResume, setCanResume] = useState(false);
   const [user, setUser] = useState<AppUser | null>(null);
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [showLoginButtons, setShowLoginButtons] = useState(false);
+  const [gameDifficulty, setGameDifficulty] = useState<'beginner' | 'easy' | 'medium' | 'hard' | 'expert'>('easy');
 
   useEffect(() => {
     AppLogger.init();
@@ -50,7 +54,7 @@ export default function App() {
   };
 
   useEffect(() => {
-    const bootstrap = async () => {
+    const continueBootstrap = async () => {
       // Wait for Firebase to restore auth state
       await waitForAuthInit();
 
@@ -65,8 +69,37 @@ export default function App() {
       // If no user, show login buttons
       setShowLoginButtons(true);
     };
+
+    const bootstrap = async () => {
+      // Check for app updates
+      const { needsUpdate, storeUrl } = await checkAppVersion();
+      if (needsUpdate && storeUrl) {
+        Alert.alert(
+          texts.common.updateTitle,
+          texts.common.updateMessage,
+          [
+            {
+              text: texts.common.updateLater,
+              style: 'cancel',
+              onPress: () => continueBootstrap(),
+            },
+            {
+              text: texts.common.updateNow,
+              onPress: () => {
+                Linking.openURL(storeUrl);
+              },
+            },
+          ],
+          { cancelable: false }
+        );
+        return;
+      }
+
+      await continueBootstrap();
+    };
+
     void bootstrap();
-  }, []);
+  }, [texts]);
 
   const refreshResumeAvailability = useCallback(() => {
     void hasSavedGameSnapshot()
@@ -84,9 +117,13 @@ export default function App() {
       const googleUser = await signInWithGoogle();
       setUser({ type: 'google', id: googleUser.uid, name: googleUser.displayName });
       setScreen('home');
-    } catch (error) {
-      console.error('Google Sign-In failed', error);
-      Alert.alert('Login Failed', 'Could not sign in with Google.');
+    } catch (error: any) {
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        console.log('Google Sign-In cancelled');
+      } else {
+        console.error('Google Sign-In failed', error);
+        Alert.alert('Login Failed', 'Could not sign in with Google.');
+      }
     } finally {
       setIsSigningIn(false);
     }
@@ -107,16 +144,12 @@ export default function App() {
     }
   };
 
-  const startNewGame = () => {
-    setGameMode('new');
-    setScreen('game');
-  };
-  const handleStartNewGame = () => {
+  const handleStartNewGame = (difficulty: string = 'easy') => {
     if (canResume) {
-      Alert.alert(TEXTS.home.newGame, TEXTS.home.newGameWarning, [
-        { text: TEXTS.common.cancel, style: 'cancel' },
+      Alert.alert(texts.home.newGameAlertTitle, texts.home.newGameAlertMessage, [
+        { text: texts.common.cancel, style: 'cancel' },
         {
-          text: TEXTS.common.confirm,
+          text: texts.common.confirm,
           onPress: async () => {
             // Record loss for the abandoned game
             try {
@@ -136,28 +169,39 @@ export default function App() {
             } catch (e) {
               console.warn('Failed to record loss for abandoned game', e);
             }
-            startNewGame();
+            // @ts-ignore
+            setGameDifficulty(difficulty);
+            setGameMode('new');
+            setScreen('game');
           },
         },
       ]);
     } else {
-      startNewGame();
+      // @ts-ignore
+      setGameDifficulty(difficulty);
+      setGameMode('new');
+      setScreen('game');
     }
   };
+
   const handleContinueGame = () => {
     setGameMode('resume');
     setScreen('game');
   };
+
   const handleGoHome = () => {
     setScreen('home');
     refreshResumeAvailability();
   };
+
   const handleOpenStats = () => {
     setScreen('stats');
   };
+
   const handleOpenSettings = () => {
     setScreen('settings');
   };
+
   const handleStartTutorial = () => {
     setGameMode('tutorial');
     setScreen('game');
@@ -198,7 +242,7 @@ export default function App() {
           continueAvailable={canResume}
         />
       )}
-      {screen === 'game' && <SudokuScreen onGoHome={handleGoHome} mode={gameMode} />}
+      {screen === 'game' && <SudokuScreen onGoHome={handleGoHome} mode={gameMode} difficulty={gameDifficulty} />}
       {screen === 'stats' && <StatsScreen onGoBack={handleGoHome} />}
       {screen === 'settings' && <SettingsScreen onGoBack={handleGoHome} onUserChanged={updateUserState} onStartTutorial={handleStartTutorial} />}
     </SafeAreaView>

@@ -8,8 +8,8 @@ export async function getDb() {
   const db = await SQLite.openDatabase({
     name: 'sudoku.db',
     location: 'default',
-    // Copies bundled DB from android/app/src/main/assets/www/sudoku.db on first open
-    createFromLocation: '~www/sudoku.db',
+    // Copies bundled DB from android/app/src/main/assets/sudoku.db on first open
+    createFromLocation: '~sudoku.db',
   });
   await log('DB', 'openDatabase success');
   return db;

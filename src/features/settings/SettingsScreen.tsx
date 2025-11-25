@@ -4,6 +4,7 @@ import { GoogleSigninButton } from '@react-native-google-signin/google-signin';
 import { useTexts } from '../../config/texts';
 import { signInWithGoogle, signOut, getCurrentUser } from '../../core/auth/AuthRepository';
 import { useLanguageStore } from './store/languageStore';
+import VersionCheck from 'react-native-version-check';
 
 type SettingsScreenProps = {
     onGoBack: () => void;
@@ -201,6 +202,14 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onGoBack, onUserChanged
                         <Text style={styles.value}>{userId}</Text>
                         <Text style={styles.label}>{texts.settings.type}:</Text>
                         <Text style={styles.value}>{isAnonymous ? texts.settings.guest : texts.settings.google}</Text>
+                    </View>
+                </View>
+
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Info</Text>
+                    <View style={styles.card}>
+                        <Text style={styles.label}>Version:</Text>
+                        <Text style={styles.value}>{VersionCheck.getCurrentVersion()}</Text>
                     </View>
                 </View>
 

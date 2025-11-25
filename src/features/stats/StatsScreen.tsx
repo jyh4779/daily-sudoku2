@@ -64,11 +64,14 @@ const StatsScreen: React.FC<StatsScreenProps> = ({ onGoBack }) => {
     currentWinStreak: 0,
     bestWinStreak: 0,
     averageTimeSeconds: 0,
-    bestTimeEasy: null,
-    bestTimeMedium: null,
-    bestTimeHard: null,
-    bestTimeExpert: null,
-    completedCounts: { easy: 0, medium: 0, hard: 0, expert: 0 },
+    bestTimes: {
+      beginner: null,
+      easy: null,
+      medium: null,
+      hard: null,
+      expert: null,
+    },
+    completedCounts: { beginner: 0, easy: 0, medium: 0, hard: 0, expert: 0 },
     totalTimeSeconds: 0,
   };
 
@@ -120,17 +123,7 @@ const StatsScreen: React.FC<StatsScreenProps> = ({ onGoBack }) => {
           </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{texts.stats.ratio.title}</Text>
-          <View style={styles.ratioBar}>
-            <View style={[styles.ratioSegment, { flex: currentStats.wins || 1, backgroundColor: '#5b7df6' }]} />
-            <View style={[styles.ratioSegment, { flex: currentStats.losses || 1, backgroundColor: '#ff6b6b' }]} />
-          </View>
-          <View style={styles.ratioLabels}>
-            <Text style={styles.ratioLabel}>{texts.stats.ratio.winsLabel}: {currentStats.wins}</Text>
-            <Text style={styles.ratioLabel}>{texts.stats.ratio.lossesLabel}: {currentStats.losses}</Text>
-          </View>
-        </View>
+
 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
@@ -138,6 +131,10 @@ const StatsScreen: React.FC<StatsScreenProps> = ({ onGoBack }) => {
             <Text style={styles.sectionSubtitle}>{texts.stats.completed.subtitle}</Text>
           </View>
           <View style={styles.difficultyRow}>
+            <View style={styles.difficultyCol}>
+              <Text style={styles.difficultyLabel}>Beginner</Text>
+              <Text style={styles.difficultyValue}>{currentStats.completedCounts?.beginner ?? 0}</Text>
+            </View>
             <View style={styles.difficultyCol}>
               <Text style={styles.difficultyLabel}>Easy</Text>
               <Text style={styles.difficultyValue}>{currentStats.completedCounts?.easy ?? 0}</Text>
@@ -160,20 +157,24 @@ const StatsScreen: React.FC<StatsScreenProps> = ({ onGoBack }) => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{texts.stats.bestTimes.title}</Text>
           <View style={styles.bestTimeRow}>
+            <Text style={styles.bestTimeLabel}>{texts.stats.bestTimes.beginner}</Text>
+            <Text style={styles.bestTimeValue}>{currentStats.bestTimes.beginner ? formatTime(currentStats.bestTimes.beginner) : '-'}</Text>
+          </View>
+          <View style={styles.bestTimeRow}>
             <Text style={styles.bestTimeLabel}>{texts.stats.bestTimes.easy}</Text>
-            <Text style={styles.bestTimeValue}>{currentStats.bestTimeEasy ? formatTime(currentStats.bestTimeEasy) : '-'}</Text>
+            <Text style={styles.bestTimeValue}>{currentStats.bestTimes.easy ? formatTime(currentStats.bestTimes.easy) : '-'}</Text>
           </View>
           <View style={styles.bestTimeRow}>
             <Text style={styles.bestTimeLabel}>{texts.stats.bestTimes.medium}</Text>
-            <Text style={styles.bestTimeValue}>{currentStats.bestTimeMedium ? formatTime(currentStats.bestTimeMedium) : '-'}</Text>
+            <Text style={styles.bestTimeValue}>{currentStats.bestTimes.medium ? formatTime(currentStats.bestTimes.medium) : '-'}</Text>
           </View>
           <View style={styles.bestTimeRow}>
             <Text style={styles.bestTimeLabel}>{texts.stats.bestTimes.hard}</Text>
-            <Text style={styles.bestTimeValue}>{currentStats.bestTimeHard ? formatTime(currentStats.bestTimeHard) : '-'}</Text>
+            <Text style={styles.bestTimeValue}>{currentStats.bestTimes.hard ? formatTime(currentStats.bestTimes.hard) : '-'}</Text>
           </View>
           <View style={styles.bestTimeRow}>
             <Text style={styles.bestTimeLabel}>{texts.stats.bestTimes.expert}</Text>
-            <Text style={styles.bestTimeValue}>{currentStats.bestTimeExpert ? formatTime(currentStats.bestTimeExpert) : '-'}</Text>
+            <Text style={styles.bestTimeValue}>{currentStats.bestTimes.expert ? formatTime(currentStats.bestTimes.expert) : '-'}</Text>
           </View>
         </View>
       </ScrollView>
@@ -314,25 +315,6 @@ const styles = StyleSheet.create({
   sectionSubtitle: {
     fontSize: 13,
     color: '#8f96a8',
-  },
-  ratioBar: {
-    height: 12,
-    flexDirection: 'row',
-    borderRadius: 6,
-    overflow: 'hidden',
-    marginBottom: 12,
-  },
-  ratioSegment: {
-    height: '100%',
-  },
-  ratioLabels: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  ratioLabel: {
-    fontSize: 13,
-    color: '#6f768f',
-    fontWeight: '500',
   },
   chartPlaceholder: {
     height: 120,

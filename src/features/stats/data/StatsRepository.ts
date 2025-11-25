@@ -1,7 +1,7 @@
 import { getFirestore, collection, addDoc, query, where, onSnapshot, Timestamp, orderBy } from '@react-native-firebase/firestore';
 import AppLogger from '../../../core/logger/AppLogger';
 
-export type Difficulty = 'easy' | 'medium' | 'hard' | 'expert';
+export type Difficulty = 'beginner' | 'easy' | 'medium' | 'hard' | 'expert';
 
 export interface GameResult {
     userId: string;
@@ -17,16 +17,20 @@ export interface UserStats {
     gamesPlayed: number;
     wins: number;
     losses: number;
-    winStreak: number;
-    currentStreak: number;
+    winRate: number;
+    bestWinStreak: number;
+    currentWinStreak: number;
+    averageTimeSeconds: number;
     totalTimeSeconds: number;
     bestTimes: {
+        beginner: number | null;
         easy: number | null;
         medium: number | null;
         hard: number | null;
         expert: number | null;
     };
     completedCounts: {
+        beginner: number;
         easy: number;
         medium: number;
         hard: number;
@@ -38,16 +42,20 @@ const DEFAULT_STATS: UserStats = {
     gamesPlayed: 0,
     wins: 0,
     losses: 0,
-    winStreak: 0,
-    currentStreak: 0,
+    winRate: 0,
+    bestWinStreak: 0,
+    currentWinStreak: 0,
+    averageTimeSeconds: 0,
     totalTimeSeconds: 0,
     bestTimes: {
+        beginner: null,
         easy: null,
         medium: null,
         hard: null,
         expert: null,
     },
     completedCounts: {
+        beginner: 0,
         easy: 0,
         medium: 0,
         hard: 0,
@@ -94,8 +102,8 @@ export const subscribeToUserStats = (userId: string, onUpdate: (stats: UserStats
                 if (game.result === 'win') {
                     stats.wins += 1;
                     currentStreak += 1;
-                    if (currentStreak > stats.winStreak) {
-                        stats.winStreak = currentStreak;
+                    if (currentStreak > stats.bestWinStreak) {
+                        stats.bestWinStreak = currentStreak;
                     }
                     stats.completedCounts[game.difficulty] += 1;
 
@@ -109,7 +117,17 @@ export const subscribeToUserStats = (userId: string, onUpdate: (stats: UserStats
                 }
             });
 
-            stats.currentStreak = currentStreak;
+            stats.currentWinStreak = currentStreak;
+
+            // Calculate derived stats
+            if (stats.gamesPlayed > 0) {
+                stats.winRate = stats.wins / stats.gamesPlayed;
+                stats.averageTimeSeconds = stats.totalTimeSeconds / stats.gamesPlayed;
+            } else {
+                stats.winRate = 0;
+                stats.averageTimeSeconds = 0;
+            }
+
             onUpdate(stats);
         },
         error => {

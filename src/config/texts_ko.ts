@@ -4,6 +4,10 @@ export const TEXTS_KO: TextResources = {
     common: {
         confirm: '확인',
         cancel: '취소',
+        updateTitle: '업데이트 알림',
+        updateMessage: '새로운 버전이 출시되었습니다. 최신 버전으로 업데이트해주세요.',
+        updateNow: '지금 업데이트',
+        updateLater: '나중에',
     },
     appName: 'Daily Sudoku',
     home: {
@@ -11,13 +15,15 @@ export const TEXTS_KO: TextResources = {
         continue: '이어하기',
         stats: '통계',
         settings: '설정',
-        newGameWarning: '이어하기 데이터가 있습니다. 새 게임을 시작하면 데이터가 삭제됩니다. 계속하시겠습니까?',
+        newGameAlertTitle: '새 게임',
+        newGameAlertMessage: '이어하기 데이터가 있습니다. 새 게임을 시작하면 데이터가 삭제됩니다. 계속하시겠습니까?',
     },
     game: {
         difficulty: {
-            easy: '쉬움',
-            medium: '보통',
-            hard: '어려움',
+            beginner: '입문자',
+            easy: '초보자',
+            medium: '중급자',
+            hard: '고급자',
             expert: '전문가',
         },
         overlayTitle: {
@@ -64,9 +70,10 @@ export const TEXTS_KO: TextResources = {
         },
         bestTimes: {
             title: '최고 기록',
-            easy: '쉬움',
-            medium: '보통',
-            hard: '어려움',
+            beginner: '입문자',
+            easy: '초보자',
+            medium: '중급자',
+            hard: '고급자',
             expert: '전문가',
         },
     },

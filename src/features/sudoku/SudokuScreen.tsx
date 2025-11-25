@@ -16,15 +16,16 @@ import { TUTORIAL_PUZZLE, TUTORIAL_SOLUTION } from './data/tutorialData';
 type SudokuScreenProps = {
   onGoHome?: () => void;
   mode: 'new' | 'resume' | 'tutorial';
+  difficulty?: 'beginner' | 'easy' | 'medium' | 'hard' | 'expert';
 };
 
-const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode }) => {
+const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode, difficulty = 'easy' }) => {
   const texts = useTexts();
   const { width } = useWindowDimensions();
   const GUTTER = Math.max(16, Math.min(24, Math.round(width * 0.04)));
 
   const [boardBox, setBoardBox] = useState<{ w: number; h: number } | null>(null);
-  const loadRandomEasy = useSudokuStore(s => s.loadRandomEasy);
+  const loadNewGame = useSudokuStore(s => s.loadNewGame);
   const loadTutorialPuzzle = useSudokuStore(s => s.loadTutorialPuzzle);
   const mistakes = useSudokuStore(s => s.mistakes);
   const mistakeLimit = useSudokuStore(s => s.mistakeLimit);
@@ -49,12 +50,12 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode }) => {
         if (mode === 'resume') {
           const loaded = await loadSavedGameFromDb();
           if (!loaded) {
-            await loadRandomEasy();
+            await loadNewGame(difficulty);
           }
         } else if (mode === 'tutorial') {
           loadTutorialPuzzle(TUTORIAL_PUZZLE, TUTORIAL_SOLUTION);
         } else {
-          await loadRandomEasy();
+          await loadNewGame(difficulty);
         }
       } catch (e) {
         console.error(e);
@@ -66,7 +67,7 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode }) => {
     return () => {
       isMounted = false;
     };
-  }, [mode, loadRandomEasy, loadSavedGameFromDb, loadTutorialPuzzle]);
+  }, [mode, difficulty, loadNewGame, loadSavedGameFromDb, loadTutorialPuzzle]);
 
   const onLayoutBoardArea = (e: LayoutChangeEvent) => {
     const { width: w, height: h } = e.nativeEvent.layout;
@@ -114,7 +115,7 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode }) => {
 
   useEffect(() => {
     setStartTime(Date.now());
-  }, [mode, loadRandomEasy, restartCurrent]);
+  }, [mode, loadNewGame, restartCurrent]);
 
   // Save stats when game ends
   useEffect(() => {
@@ -124,7 +125,7 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode }) => {
         const endTime = Date.now();
         saveGameResult({
           userId: user.uid,
-          difficulty: 'easy',
+          difficulty: difficulty,
           mistakes: mistakes,
           startTime: Math.floor(startTime / 1000),
           endTime: Math.floor(endTime / 1000),
@@ -158,7 +159,7 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode }) => {
     setStartTime(Date.now());
   };
   const handleNewGame = () => {
-    loadRandomEasy().then(() => {
+    loadNewGame(difficulty).then(() => {
       resetElapsed();
       setIsPaused(false);
       setStartTime(Date.now());
@@ -219,7 +220,7 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode }) => {
               </View>
 
               <View style={[styles.difficultyWrap, { height: unit }]}>
-                <Text style={styles.difficulty}>{texts.game.difficulty.easy}</Text>
+                <Text style={styles.difficulty}>{texts.game.difficulty[difficulty]}</Text>
               </View>
 
               <View style={[styles.boardArea, { height: unit * 10 }]} onLayout={onLayoutBoardArea}>
@@ -388,7 +389,7 @@ const styles = StyleSheet.create({
   },
   boardMask: {
     borderRadius: 8,
-    backgroundColor: '#fdf0f6',
+    backgroundColor: '#ffffff',
   },
 
   tools: {
@@ -408,6 +409,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.25)',
     alignItems: 'center',
     justifyContent: 'center',
+    zIndex: 100,
+    elevation: 10,
   },
   modalCard: {
     minWidth: 240,

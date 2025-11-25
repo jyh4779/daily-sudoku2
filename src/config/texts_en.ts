@@ -2,6 +2,10 @@ export const TEXTS_EN = {
     common: {
         confirm: 'Confirm',
         cancel: 'Cancel',
+        updateTitle: 'Update Available',
+        updateMessage: 'A new version of the app is available. Please update to the latest version.',
+        updateNow: 'Update Now',
+        updateLater: 'Later',
     },
     appName: 'Daily Sudoku',
     home: {
@@ -9,10 +13,12 @@ export const TEXTS_EN = {
         continue: 'Resume',
         stats: 'Stats',
         settings: 'Settings',
-        newGameWarning: 'You have a saved game. Starting a new game will overwrite it. Do you want to continue?',
+        newGameAlertTitle: 'New Game',
+        newGameAlertMessage: 'You have a saved game. Starting a new game will overwrite it. Do you want to continue?',
     },
     game: {
         difficulty: {
+            beginner: 'Beginner',
             easy: 'Easy',
             medium: 'Medium',
             hard: 'Hard',
@@ -62,6 +68,7 @@ export const TEXTS_EN = {
         },
         bestTimes: {
             title: 'Best Times',
+            beginner: 'Beginner',
             easy: 'Easy',
             medium: 'Medium',
             hard: 'Hard',

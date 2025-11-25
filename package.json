@@ -24,6 +24,7 @@
     "react-native-google-mobile-ads": "^16.0.0",
     "react-native-sqlite-storage": "^6.0.1",
     "react-native-svg": "^15.12.1",
+    "react-native-version-check": "^3.5.0",
     "zustand": "^5.0.7"
   },
   "devDependencies": {
@@ -41,6 +42,7 @@
     "@types/react": "^19.1.0",
     "@types/react-native-fs": "^2.13.0",
     "@types/react-native-sqlite-storage": "^6.0.5",
+    "@types/react-native-version-check": "^3",
     "@types/react-test-renderer": "^19.1.0",
     "better-sqlite3": "^12.2.0",
     "eslint": "^8.19.0",

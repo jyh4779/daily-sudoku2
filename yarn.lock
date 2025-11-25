@@ -3377,6 +3377,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/node-fetch@npm:*":
+  version: 3.0.2
+  resolution: "@types/node-fetch@npm:3.0.2"
+  dependencies:
+    node-fetch: "npm:*"
+  checksum: 10c0/2fedd8ff347c0d1fcd0491a3408087a1d8306a38a2425464ec72049ab3353debdec99d988e2a5ab5b32ee9f275aab30c1e10a250f2b6c3b91824b7aa26653700
+  languageName: node
+  linkType: hard
+
 "@types/node@npm:*":
   version: 24.2.1
   resolution: "@types/node@npm:24.2.1"
@@ -3408,6 +3417,15 @@ __metadata:
   version: 6.0.5
   resolution: "@types/react-native-sqlite-storage@npm:6.0.5"
   checksum: 10c0/273dc0bc4cf6938ffd5463106c1a208e1459c0fa8e1c01c4dee51c67affee1def15a7210fe118d2676af97a091786379e0e69c3f2f297501af97ee9488168482
+  languageName: node
+  linkType: hard
+
+"@types/react-native-version-check@npm:^3":
+  version: 3.4.8
+  resolution: "@types/react-native-version-check@npm:3.4.8"
+  dependencies:
+    "@types/node-fetch": "npm:*"
+  checksum: 10c0/e9a537bc902d791eb46edb1202433d26961fbe9978d12972a25a26ca3fd9de1c65da0264fd009a9f6a5a86a32d6d64c1a2942140f51db357b8f0fa8da00e168a
   languageName: node
   linkType: hard
 
@@ -3694,6 +3712,7 @@ __metadata:
     "@types/react": "npm:^19.1.0"
     "@types/react-native-fs": "npm:^2.13.0"
     "@types/react-native-sqlite-storage": "npm:^6.0.5"
+    "@types/react-native-version-check": "npm:^3"
     "@types/react-test-renderer": "npm:^19.1.0"
     better-sqlite3: "npm:^12.2.0"
     eslint: "npm:^8.19.0"
@@ -3707,6 +3726,7 @@ __metadata:
     react-native-sqlite-storage: "npm:^6.0.1"
     react-native-svg: "npm:^15.12.1"
     react-native-svg-transformer: "npm:^1.5.1"
+    react-native-version-check: "npm:^3.5.0"
     react-test-renderer: "npm:19.1.0"
     typescript: "npm:5.0.4"
     zustand: "npm:^5.0.7"
@@ -4836,6 +4856,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"data-uri-to-buffer@npm:^4.0.0":
+  version: 4.0.1
+  resolution: "data-uri-to-buffer@npm:4.0.1"
+  checksum: 10c0/20a6b93107597530d71d4cb285acee17f66bcdfc03fd81040921a81252f19db27588d87fc8fc69e1950c55cfb0bf8ae40d0e5e21d907230813eb5d5a7f9eb45b
+  languageName: node
+  linkType: hard
+
 "data-view-buffer@npm:^1.0.2":
   version: 1.0.2
   resolution: "data-view-buffer@npm:1.0.2"
@@ -5813,6 +5840,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fetch-blob@npm:^3.1.2, fetch-blob@npm:^3.1.4":
+  version: 3.2.0
+  resolution: "fetch-blob@npm:3.2.0"
+  dependencies:
+    node-domexception: "npm:^1.0.0"
+    web-streams-polyfill: "npm:^3.0.3"
+  checksum: 10c0/60054bf47bfa10fb0ba6cb7742acec2f37c1f56344f79a70bb8b1c48d77675927c720ff3191fa546410a0442c998d27ab05e9144c32d530d8a52fbe68f843b69
+  languageName: node
+  linkType: hard
+
 "file-entry-cache@npm:^6.0.1":
   version: 6.0.1
   resolution: "file-entry-cache@npm:6.0.1"
@@ -5950,6 +5987,15 @@ __metadata:
     cross-spawn: "npm:^7.0.6"
     signal-exit: "npm:^4.0.1"
   checksum: 10c0/8986e4af2430896e65bc2788d6679067294d6aee9545daefc84923a0a4b399ad9c7a3ea7bd8c0b2b80fdf4a92de4c69df3f628233ff3224260e9c1541a9e9ed3
+  languageName: node
+  linkType: hard
+
+"formdata-polyfill@npm:^4.0.10":
+  version: 4.0.10
+  resolution: "formdata-polyfill@npm:4.0.10"
+  dependencies:
+    fetch-blob: "npm:^3.1.2"
+  checksum: 10c0/5392ec484f9ce0d5e0d52fb5a78e7486637d516179b0eb84d81389d7eccf9ca2f663079da56f761355c0a65792810e3b345dc24db9a8bbbcf24ef3c8c88570c6
   languageName: node
   linkType: hard
 
@@ -8301,6 +8347,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"node-domexception@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "node-domexception@npm:1.0.0"
+  checksum: 10c0/5e5d63cda29856402df9472335af4bb13875e1927ad3be861dc5ebde38917aecbf9ae337923777af52a48c426b70148815e890a5d72760f1b4d758cc671b1a2b
+  languageName: node
+  linkType: hard
+
+"node-fetch@npm:*":
+  version: 3.3.2
+  resolution: "node-fetch@npm:3.3.2"
+  dependencies:
+    data-uri-to-buffer: "npm:^4.0.0"
+    fetch-blob: "npm:^3.1.4"
+    formdata-polyfill: "npm:^4.0.10"
+  checksum: 10c0/f3d5e56190562221398c9f5750198b34cf6113aa304e34ee97c94fd300ec578b25b2c2906edba922050fce983338fde0d5d34fcb0fc3336ade5bd0e429ad7538
+  languageName: node
+  linkType: hard
+
 "node-gyp@npm:latest":
   version: 11.3.0
   resolution: "node-gyp@npm:11.3.0"
@@ -9108,6 +9172,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-version-check@npm:^3.5.0":
+  version: 3.5.0
+  resolution: "react-native-version-check@npm:3.5.0"
+  dependencies:
+    lodash: "npm:^4.17.21"
+    semver: "npm:^6.1.1"
+  peerDependencies:
+    react-native: ">=0.48.0"
+  checksum: 10c0/c51e4e0823068c43bd93f8232791d7836847ba8b483d73f810f3282739c49fbcf941201cc73e1b70786e57925a0bfaa06f62719b1486e0d288aedcc547d14400
+  languageName: node
+  linkType: hard
+
 "react-native@npm:0.80.2":
   version: 0.80.2
   resolution: "react-native@npm:0.80.2"
@@ -9483,7 +9559,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"semver@npm:^6.3.0, semver@npm:^6.3.1":
+"semver@npm:^6.1.1, semver@npm:^6.3.0, semver@npm:^6.3.1":
   version: 6.3.1
   resolution: "semver@npm:6.3.1"
   bin:
@@ -10558,6 +10634,13 @@ __metadata:
   dependencies:
     defaults: "npm:^1.0.3"
   checksum: 10c0/5b61ca583a95e2dd85d7078400190efd452e05751a64accb8c06ce4db65d7e0b0cde9917d705e826a2e05cc2548f61efde115ffa374c3e436d04be45c889e5b4
+  languageName: node
+  linkType: hard
+
+"web-streams-polyfill@npm:^3.0.3":
+  version: 3.3.3
+  resolution: "web-streams-polyfill@npm:3.3.3"
+  checksum: 10c0/64e855c47f6c8330b5436147db1c75cb7e7474d924166800e8e2aab5eb6c76aac4981a84261dd2982b3e754490900b99791c80ae1407a9fa0dcff74f82ea3a7f
   languageName: node
   linkType: hard
 

@@ -1,6 +1,5 @@
 import { create } from 'zustand';
-import { getRandomFromTable, Pair } from '../data/PuzzleRepositorySqlite';
-import { fetchRandomPuzzleByDifficulty } from '../data/PuzzleRepositoryFirestore';
+import { getRandomPairByDifficulty, Pair } from '../data/PuzzleRepositorySqlite';
 import { log, warn } from '../../../core/logger/log';
 import { appendFileLog } from '../../../core/logger/fileLogger';
 import { clearSavedGameSnapshot, loadSavedGameSnapshot, saveSavedGameSnapshot } from '../data/SavedGameRepository';
@@ -25,7 +24,7 @@ type SudokuState = {
   grid: number[][];
   notes: number[][]; // bitmask per cell (1<<1..1<<9)
   selected: RC | null;
-  difficulty: 'easy' | 'medium' | 'hard' | 'expert';
+  difficulty: 'beginner' | 'easy' | 'medium' | 'hard' | 'expert';
   mistakes: number;
   mistakeLimit: number;
   undoStack: UndoItem[]; // max depth 3
@@ -34,7 +33,7 @@ type SudokuState = {
 
   setSelected: (rc: RC | null) => void;
   setValue: (r: number, c: number, v: number) => void;
-  loadRandomEasy: () => Promise<void>;
+  loadNewGame: (difficulty: 'beginner' | 'easy' | 'medium' | 'hard' | 'expert') => Promise<void>;
   loadSavedGameFromDb: () => Promise<boolean>;
   clearSavedProgress: () => Promise<void>;
 
@@ -268,7 +267,7 @@ export const useSudokuStore = create<SudokuState>((set, get) => ({
       };
     }),
 
-  loadRandomEasy: async () => {
+  loadNewGame: async (difficulty: 'beginner' | 'easy' | 'medium' | 'hard' | 'expert') => {
     const applyPair = (pair: Pair) => {
       const puz = to9x9(pair.puzzle);
       const sol = to9x9(pair.solution);
@@ -280,7 +279,7 @@ export const useSudokuStore = create<SudokuState>((set, get) => ({
         grid: vals,
         notes: empty9(),
         selected: null,
-        difficulty: 'easy',
+        difficulty: difficulty,
         mistakes: 0,
         undoStack: [],
         elapsedSec: 0,
@@ -288,30 +287,18 @@ export const useSudokuStore = create<SudokuState>((set, get) => ({
         noteMode: false,
         padSelectMode: false,
         selectedPad: null,
+        tutorialHighlights: null,
       });
     };
 
-    await log('PUZZLE', 'load start', { from: 'firestore', difficulty: 'easy' });
-    await appendFileLog('loadRandomEasy start');
-    let lastError: Error | null = null;
-    try {
-      const pair = await fetchRandomPuzzleByDifficulty('easy');
-      applyPair(pair);
-      await log('PUZZLE', 'load success (firestore)', { id: pair.meta.id });
-      await appendFileLog('loadRandomEasy success firestore', { id: pair.meta.id });
-      return;
-    } catch (e: any) {
-      lastError = e instanceof Error ? e : new Error(String(e));
-      await warn('PUZZLE', 'firestore load failed', { error: String(lastError?.message ?? lastError) });
-      await appendFileLog('loadRandomEasy firestore failed', { error: String(lastError?.message ?? lastError) });
-    }
+    await log('PUZZLE', 'load start', { from: 'sqlite', difficulty });
+    await appendFileLog('loadNewGame start', { difficulty });
 
     try {
-      await log('PUZZLE', 'fallback to sqlite', { difficulty: 'easy' });
-      const pair = await getRandomFromTable('easy');
+      const pair = await getRandomPairByDifficulty(difficulty);
       applyPair(pair);
-      await log('PUZZLE', 'load success (sqlite)', { id: pair.meta.id, line: pair.meta.line });
-      await appendFileLog('loadRandomEasy success sqlite', { id: pair.meta.id, line: pair.meta.line });
+      await log('PUZZLE', 'load success (sqlite)', { id: pair.meta.id, difficulty: pair.meta.difficulty });
+      await appendFileLog('loadNewGame success sqlite', { id: pair.meta.id });
     } catch (e: any) {
       const z = empty9();
       set({
@@ -330,11 +317,9 @@ export const useSudokuStore = create<SudokuState>((set, get) => ({
       });
       await warn('PUZZLE', 'load failed', {
         error: String(e?.message ?? e),
-        previousError: lastError ? String(lastError.message) : undefined,
       });
-      await appendFileLog('loadRandomEasy failed', {
+      await appendFileLog('loadNewGame failed', {
         error: String(e?.message ?? e),
-        previousError: lastError ? String(lastError.message) : undefined,
       });
     }
   },
