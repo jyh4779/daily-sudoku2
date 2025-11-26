@@ -10,6 +10,16 @@ export const TEXTS_KO: TextResources = {
         updateLater: '나중에',
     },
     appName: 'Daily Sudoku',
+    daily: {
+        title: '오늘의 스도쿠',
+        subtitle: '매일 새로운 퍼즐에 도전하세요!',
+        playButton: '오늘의 퍼즐 시작',
+    },
+    tabs: {
+        daily: '오늘의 스도쿠',
+        home: '홈',
+        records: '기록',
+    },
     home: {
         newGame: '새 게임',
         continue: '이어하기',
@@ -47,11 +57,10 @@ export const TEXTS_KO: TextResources = {
         },
     },
     stats: {
-        title: '나의 통계',
+        title: '통계 및 순위',
         tabs: {
-            week: '이번 주',
-            month: '이번 달',
-            allTime: '전체',
+            statistics: '통계',
+            rankings: '순위',
         },
         summary: {
             gamesPlayed: '게임 수',
@@ -75,6 +84,18 @@ export const TEXTS_KO: TextResources = {
             medium: '중급자',
             hard: '고급자',
             expert: '전문가',
+        },
+        rankings: {
+            title: '순위표',
+            rank: '순위',
+            user: '사용자',
+            score: '기록',
+            noData: '순위 데이터가 없습니다.',
+            metric: {
+                bestTime: '최고 기록',
+                winRate: '승률',
+                wins: '승리 수',
+            },
         },
     },
     settings: {

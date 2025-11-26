@@ -65,6 +65,11 @@ export default function NumberPad() {
 					}}
 				>
 					<Text style={[styles.keyText, counts[n] >= 9 && styles.keyTextDisabled, selectedPad === n && padSelectMode && styles.keyTextSelected]}>{n}</Text>
+					{counts[n] < 9 && (
+						<Text style={[styles.remainingText, selectedPad === n && padSelectMode && styles.remainingTextSelected]}>
+							{9 - counts[n]}
+						</Text>
+					)}
 				</Pressable>
 			))}
 		</View>
@@ -98,7 +103,9 @@ const styles = StyleSheet.create({
 		elevation: 0,
 		shadowOpacity: 0,
 	},
-	keyText: { fontSize: 18, fontWeight: '700', color: '#2f3b59' },
+	keyText: { fontSize: 18, fontWeight: '700', color: '#2f3b59', marginBottom: -2 },
 	keyTextSelected: { color: '#2f3b59' },
-	keyTextDisabled: { color: '#b2b8c7' }
+	keyTextDisabled: { color: '#b2b8c7' },
+	remainingText: { fontSize: 10, color: '#8f96a8', fontWeight: '600' },
+	remainingTextSelected: { color: '#5b7df6' }
 });

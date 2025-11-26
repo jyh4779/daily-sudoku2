@@ -11,6 +11,7 @@ import { ADMOB_IDS, BANNER_RESERVED_SPACE } from '../../config/admob';
 import { getCurrentUser } from '../../core/auth/AuthRepository';
 import { saveGameResult } from '../stats/data/StatsRepository';
 import TutorialOverlay from './view/TutorialOverlay';
+import AiHintModal from './view/AiHintModal';
 import { TUTORIAL_PUZZLE, TUTORIAL_SOLUTION } from './data/tutorialData';
 
 type SudokuScreenProps = {
@@ -31,7 +32,10 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode, difficulty 
   const mistakeLimit = useSudokuStore(s => s.mistakeLimit);
   const values = useSudokuStore(s => s.values);
   const solution = useSudokuStore(s => s.solution);
+  const hintsUsed = useSudokuStore(s => s.hintsUsed);
+  const maxHints = useSudokuStore(s => s.maxHints);
   const resetMistakes = useSudokuStore(s => s.resetMistakes);
+  const storeDifficulty = useSudokuStore(s => s.difficulty);
   const restartCurrent = useSudokuStore(s => s.restartCurrent);
   const elapsedSec = useSudokuStore(s => s.elapsedSec);
   const resetElapsed = useSudokuStore(s => s.resetElapsed);
@@ -177,10 +181,25 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode, difficulty 
     }) ?? ADMOB_IDS.android.banner;
 
   useEffect(() => {
-    if (isSolved) {
+    if (isSolved || isLost) {
+      const user = getCurrentUser();
+      if (user) {
+        const endTime = Date.now();
+        const durationSeconds = Math.floor((endTime - startTime) / 1000);
+
+        saveGameResult({
+          userId: user.uid,
+          difficulty: difficulty,
+          mistakes: mistakes,
+          startTime: Math.floor(startTime / 1000),
+          endTime: Math.floor(endTime / 1000),
+          durationSeconds: durationSeconds,
+          result: isSolved ? 'win' : 'loss',
+        }, user.displayName || undefined).catch(err => console.warn('Failed to save game result', err));
+      }
       void (clearSavedProgress?.() ?? Promise.resolve());
     }
-  }, [isSolved, clearSavedProgress]);
+  }, [isSolved, isLost, clearSavedProgress, difficulty, mistakes, startTime]);
 
   return (
     <View style={styles.screen}>
@@ -202,7 +221,10 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode, difficulty 
           return (
             <View style={{ width: stageW, height: stageH }}>
               <View style={[styles.topBar, { height: unit }]}>
-                <Text style={styles.topLeft}>{texts.game.mistakeCounter(mistakes, mistakeLimit)}</Text>
+                <View>
+                  <Text style={styles.topLeft}>{texts.game.mistakeCounter(mistakes, mistakeLimit)}</Text>
+                  <Text style={styles.topLeft}>Hints: {hintsUsed}/{maxHints}</Text>
+                </View>
                 <Text style={styles.topTitle}>{timeText}</Text>
                 <View style={styles.topActions}>
                   <Pressable
@@ -220,7 +242,7 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode, difficulty 
               </View>
 
               <View style={[styles.difficultyWrap, { height: unit }]}>
-                <Text style={styles.difficulty}>{texts.game.difficulty[difficulty]}</Text>
+                <Text style={styles.difficulty}>{texts.game.difficulty[storeDifficulty]}</Text>
               </View>
 
               <View style={[styles.boardArea, { height: unit * 10 }]} onLayout={onLayoutBoardArea}>
@@ -259,51 +281,60 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode, difficulty 
         }}
       </AspectFitContainer>
 
-      {(isLost || isSolved || isPaused) && (
-        <View style={styles.overlay}>
-          <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>
-              {isPaused
-                ? texts.game.overlayTitle.pause
-                : isLost
-                  ? texts.game.overlayTitle.loss
-                  : texts.game.overlayTitle.success}
-            </Text>
-            {isPaused ? (
-              <View style={styles.modalBtns}>
-                <Pressable style={styles.modalBtn} onPress={handleResume}>
-                  <Text style={styles.modalBtnText}>{texts.game.overlayButtons.continue}</Text>
-                </Pressable>
-                <Pressable style={styles.modalBtn} onPress={handleGoHome}>
-                  <Text style={styles.modalBtnText}>{texts.game.overlayButtons.home}</Text>
-                </Pressable>
-              </View>
-            ) : isLost ? (
-              <View style={styles.modalBtns}>
-                <Pressable style={styles.modalBtn} onPress={handleRestart}>
-                  <Text style={styles.modalBtnText}>{texts.game.overlayButtons.restart}</Text>
-                </Pressable>
-                <Pressable style={styles.modalBtn} onPress={resetMistakes}>
-                  <Text style={styles.modalBtnText}>{texts.game.overlayButtons.continue}</Text>
-                </Pressable>
-              </View>
-            ) : (
-              <View style={styles.modalBtns}>
-                <Pressable style={styles.modalBtn} onPress={handleNewGame}>
-                  <Text style={styles.modalBtnText}>{texts.game.overlayButtons.newGame}</Text>
-                </Pressable>
-                <Pressable style={styles.modalBtn} onPress={handleGoHome}>
-                  <Text style={styles.modalBtnText}>{texts.game.overlayButtons.home}</Text>
-                </Pressable>
-              </View>
-            )}
+      {
+        (isLost || isSolved || isPaused) && (
+          <View style={styles.overlay}>
+            <View style={styles.modalCard}>
+              <Text style={styles.modalTitle}>
+                {isPaused
+                  ? texts.game.overlayTitle.pause
+                  : isLost
+                    ? texts.game.overlayTitle.loss
+                    : texts.game.overlayTitle.success}
+              </Text>
+              {isPaused ? (
+                <View style={styles.modalBtns}>
+                  <Pressable style={styles.modalBtn} onPress={handleResume}>
+                    <Text style={styles.modalBtnText}>{texts.game.overlayButtons.continue}</Text>
+                  </Pressable>
+                  <Pressable style={styles.modalBtn} onPress={handleGoHome}>
+                    <Text style={styles.modalBtnText}>{texts.game.overlayButtons.home}</Text>
+                  </Pressable>
+                </View>
+              ) : isLost ? (
+                <View style={styles.modalBtns}>
+                  <Pressable style={styles.modalBtn} onPress={handleRestart}>
+                    <Text style={styles.modalBtnText}>{texts.game.overlayButtons.restart}</Text>
+                  </Pressable>
+                  <Pressable style={styles.modalBtn} onPress={resetMistakes}>
+                    <Text style={styles.modalBtnText}>{texts.game.overlayButtons.continue}</Text>
+                  </Pressable>
+                  <Pressable style={styles.modalBtn} onPress={handleGoHome}>
+                    <Text style={styles.modalBtnText}>{texts.game.overlayButtons.home}</Text>
+                  </Pressable>
+                </View>
+              ) : (
+                <View style={styles.modalBtns}>
+                  <Pressable style={styles.modalBtn} onPress={handleNewGame}>
+                    <Text style={styles.modalBtnText}>{texts.game.overlayButtons.newGame}</Text>
+                  </Pressable>
+                  <Pressable style={styles.modalBtn} onPress={handleGoHome}>
+                    <Text style={styles.modalBtnText}>{texts.game.overlayButtons.home}</Text>
+                  </Pressable>
+                </View>
+              )}
+            </View>
           </View>
-        </View>
-      )}
+        )
+      }
 
-      {mode === 'tutorial' && (
-        <TutorialOverlay onComplete={handleGoHome} />
-      )}
+      {
+        mode === 'tutorial' && (
+          <TutorialOverlay onComplete={handleGoHome} />
+        )
+      }
+
+      <AiHintModal />
 
       <View style={styles.bannerArea}>
         <BannerAd

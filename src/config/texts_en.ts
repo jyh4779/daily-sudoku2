@@ -8,6 +8,16 @@ export const TEXTS_EN = {
         updateLater: 'Later',
     },
     appName: 'Daily Sudoku',
+    daily: {
+        title: 'Daily Sudoku',
+        subtitle: 'Play a new puzzle every day!',
+        playButton: 'Play Today\'s Puzzle',
+    },
+    tabs: {
+        daily: 'Daily',
+        home: 'Home',
+        records: 'Records',
+    },
     home: {
         newGame: 'New Game',
         continue: 'Resume',
@@ -47,9 +57,8 @@ export const TEXTS_EN = {
     stats: {
         title: 'My Statistics',
         tabs: {
-            week: 'This Week',
-            month: 'This Month',
-            allTime: 'All Time',
+            statistics: 'Statistics',
+            rankings: 'Rankings',
         },
         summary: {
             gamesPlayed: 'Games Played',
@@ -73,6 +82,18 @@ export const TEXTS_EN = {
             medium: 'Medium',
             hard: 'Hard',
             expert: 'Expert',
+        },
+        rankings: {
+            title: 'Leaderboard',
+            rank: 'Rank',
+            user: 'User',
+            score: 'Score',
+            noData: 'No ranking data available.',
+            metric: {
+                bestTime: 'Best Time',
+                winRate: 'Win Rate',
+                wins: 'Wins',
+            },
         },
     },
     settings: {

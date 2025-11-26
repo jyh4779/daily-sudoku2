@@ -7,8 +7,7 @@ import { log } from './src/core/logger/log';
 import { appendFileLog, fileLogPaths } from './src/core/logger/fileLogger';
 import { useTexts } from './src/config/texts';
 import SudokuScreen from './src/features/sudoku/SudokuScreen';
-import HomeScreen from './src/features/home/HomeScreen';
-import StatsScreen from './src/features/stats/StatsScreen';
+import MainLayout from './src/features/home/MainLayout';
 import SettingsScreen from './src/features/settings/SettingsScreen';
 import { hasSavedGameSnapshot, loadSavedGameSnapshot } from './src/features/sudoku/data/SavedGameRepository';
 import { initGoogleSignin, signInWithGoogle, getCurrentUser, signInAnonymously, waitForAuthInit } from './src/core/auth/AuthRepository';
@@ -18,7 +17,7 @@ import { Linking } from 'react-native';
 
 const splashArt = require('./src/assets/splash.png');
 
-type ScreenState = 'splash' | 'home' | 'game' | 'stats' | 'settings';
+type ScreenState = 'splash' | 'home' | 'game' | 'settings';
 type UserType = 'guest' | 'google';
 type AppUser = { type: UserType; id: string; name?: string | null };
 
@@ -194,10 +193,6 @@ export default function App() {
     refreshResumeAvailability();
   };
 
-  const handleOpenStats = () => {
-    setScreen('stats');
-  };
-
   const handleOpenSettings = () => {
     setScreen('settings');
   };
@@ -234,16 +229,15 @@ export default function App() {
         </View>
       )}
       {screen === 'home' && (
-        <HomeScreen
+        <MainLayout
           onPressNewGame={handleStartNewGame}
-          onPressContinue={canResume ? handleContinueGame : undefined}
-          onPressStats={handleOpenStats}
+          onPressContinue={canResume ? handleContinueGame : () => { }}
           onPressSettings={handleOpenSettings}
           continueAvailable={canResume}
+          onGoHome={handleGoHome}
         />
       )}
       {screen === 'game' && <SudokuScreen onGoHome={handleGoHome} mode={gameMode} difficulty={gameDifficulty} />}
-      {screen === 'stats' && <StatsScreen onGoBack={handleGoHome} />}
       {screen === 'settings' && <SettingsScreen onGoBack={handleGoHome} onUserChanged={updateUserState} onStartTutorial={handleStartTutorial} />}
     </SafeAreaView>
   );

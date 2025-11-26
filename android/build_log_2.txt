@@ -1,0 +1,861 @@
+> Task :gradle-plugin:settings-plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle-plugin:shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle-plugin:shared:compileKotlin UP-TO-DATE
+> Task :gradle-plugin:shared:compileJava NO-SOURCE
+> Task :gradle-plugin:shared:processResources NO-SOURCE
+> Task :gradle-plugin:shared:classes UP-TO-DATE
+> Task :gradle-plugin:shared:jar UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:compileKotlin UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:compileJava NO-SOURCE
+> Task :gradle-plugin:settings-plugin:pluginDescriptors UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:processResources UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:classes UP-TO-DATE
+> Task :gradle-plugin:settings-plugin:jar UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :gradle-plugin:react-native-gradle-plugin:compileKotlin UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:compileJava NO-SOURCE
+> Task :gradle-plugin:react-native-gradle-plugin:pluginDescriptors UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:processResources UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:classes UP-TO-DATE
+> Task :gradle-plugin:react-native-gradle-plugin:jar UP-TO-DATE
+
+> Configure project :react-native-firebase_app
+:react-native-firebase_app package.json found at D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\@react-native-firebase\app\package.json
+:react-native-firebase_app:firebase.bom using default value: 34.4.0
+:react-native-firebase_app:play.play-services-auth using default value: 21.4.0
+:react-native-firebase_app package.json found at D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\@react-native-firebase\app\package.json
+:react-native-firebase_app:version set from package.json: 23.5.0 (23,5,0 - 23005000)
+:react-native-firebase_app:android.compileSdk using custom value: 35
+:react-native-firebase_app:android.targetSdk using custom value: 35
+:react-native-firebase_app:android.minSdk using custom value: 24
+:react-native-firebase_app:reactNativeAndroidDir D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\react-native
+
+> Configure project :react-native-firebase_auth
+:react-native-firebase_auth package.json found at D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\@react-native-firebase\auth\package.json
+:react-native-firebase_app package.json found at D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\@react-native-firebase\app\package.json
+:react-native-firebase_auth:firebase.bom using default value: 34.4.0
+:react-native-firebase_auth package.json found at D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\@react-native-firebase\auth\package.json
+:react-native-firebase_auth:version set from package.json: 23.5.0 (23,5,0 - 23005000)
+:react-native-firebase_auth:android.compileSdk using custom value: 35
+:react-native-firebase_auth:android.targetSdk using custom value: 35
+:react-native-firebase_auth:android.minSdk using custom value: 24
+:react-native-firebase_auth:reactNativeAndroidDir D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\react-native
+
+> Configure project :react-native-firebase_firestore
+:react-native-firebase_firestore package.json found at D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\@react-native-firebase\firestore\package.json
+:react-native-firebase_app package.json found at D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\@react-native-firebase\app\package.json
+:react-native-firebase_firestore:firebase.bom using default value: 34.4.0
+:react-native-firebase_firestore package.json found at D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\@react-native-firebase\firestore\package.json
+:react-native-firebase_firestore:version set from package.json: 23.5.0 (23,5,0 - 23005000)
+:react-native-firebase_firestore:android.compileSdk using custom value: 35
+:react-native-firebase_firestore:android.targetSdk using custom value: 35
+:react-native-firebase_firestore:android.minSdk using custom value: 24
+:react-native-firebase_firestore:reactNativeAndroidDir D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\react-native
+
+> Configure project :react-native-google-mobile-ads
+:react-native-google-mobile-ads package.json found at D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\react-native-google-mobile-ads\package.json
+:react-native-google-mobile-ads package.json found at D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\react-native-google-mobile-ads\package.json
+:react-native-google-mobile-ads:version set from package.json: 16.0.0 (16,0,0 - 16000000)
+:react-native-google-mobile-ads:android.compileSdk using custom value: 35
+:react-native-google-mobile-ads:android.targetSdk using custom value: 35
+:react-native-google-mobile-ads:android.minSdk using custom value: 24
+:react-native-google-mobile-ads:reactNativeAndroidDir D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\react-native
+
+> Task :app:createBundleReleaseJsAndAssets
+warn Package react-native-sqlite-storage contains invalid configuration: "dependency.platforms.ios.project" is not allowed. Please verify it's properly linked using "npx react-native config" command and contact the package maintainers about this.
+ WARN  the transform cache was reset.
+                Welcome to Metro v0.82.5
+              Fast - Scalable - Integrated
+
+
+Writing bundle output to: android\app\build\generated\assets\createBundleReleaseJsAndAssets\index.android.bundle
+Writing sourcemap output to: android\app\build\intermediates\sourcemaps\react\release\index.android.bundle.packager.map
+Done writing bundle output
+Done writing sourcemap output
+Copying 1 asset files
+Done copying assets
+
+> Task :app:generateAutolinkingNewArchitectureFiles
+> Task :app:generateAutolinkingPackageList
+> Task :app:generateCodegenSchemaFromJavaScript SKIPPED
+> Task :app:generateCodegenArtifactsFromSchema SKIPPED
+> Task :app:generateReactNativeEntryPoint
+> Task :app:preBuild
+> Task :app:preReleaseBuild
+> Task :app:generateReleaseResValues
+> Task :app:processReleaseGoogleServices
+> Task :react-native-async-storage_async-storage:generateCodegenSchemaFromJavaScript
+> Task :react-native-async-storage_async-storage:generateCodegenArtifactsFromSchema
+> Task :react-native-async-storage_async-storage:preBuild
+> Task :react-native-async-storage_async-storage:preReleaseBuild
+> Task :react-native-async-storage_async-storage:generateReleaseResValues
+> Task :react-native-async-storage_async-storage:generateReleaseResources
+> Task :react-native-async-storage_async-storage:packageReleaseResources
+> Task :react-native-device-info:preBuild UP-TO-DATE
+> Task :react-native-device-info:preReleaseBuild UP-TO-DATE
+> Task :react-native-device-info:generateReleaseResValues
+> Task :react-native-device-info:generateReleaseResources
+> Task :react-native-device-info:packageReleaseResources
+> Task :react-native-firebase_app:preBuild UP-TO-DATE
+> Task :react-native-firebase_app:preReleaseBuild UP-TO-DATE
+> Task :react-native-firebase_app:generateReleaseResValues
+> Task :react-native-firebase_app:generateReleaseResources
+> Task :react-native-firebase_app:packageReleaseResources
+> Task :react-native-firebase_auth:preBuild UP-TO-DATE
+> Task :react-native-firebase_auth:preReleaseBuild UP-TO-DATE
+> Task :react-native-firebase_auth:generateReleaseResValues
+> Task :react-native-firebase_auth:generateReleaseResources
+> Task :react-native-firebase_auth:packageReleaseResources
+> Task :react-native-firebase_firestore:preBuild UP-TO-DATE
+> Task :react-native-firebase_firestore:preReleaseBuild UP-TO-DATE
+> Task :react-native-firebase_firestore:generateReleaseResValues
+> Task :react-native-firebase_firestore:generateReleaseResources
+> Task :react-native-firebase_firestore:packageReleaseResources
+> Task :react-native-fs:preBuild UP-TO-DATE
+> Task :react-native-fs:preReleaseBuild UP-TO-DATE
+> Task :react-native-fs:generateReleaseResValues
+> Task :react-native-fs:generateReleaseResources
+> Task :react-native-fs:packageReleaseResources
+> Task :react-native-google-mobile-ads:generateCodegenSchemaFromJavaScript
+> Task :react-native-google-mobile-ads:generateCodegenArtifactsFromSchema
+> Task :react-native-google-mobile-ads:preBuild
+> Task :react-native-google-mobile-ads:preReleaseBuild
+> Task :react-native-google-mobile-ads:generateReleaseResValues
+> Task :react-native-google-mobile-ads:generateReleaseResources
+> Task :react-native-google-mobile-ads:packageReleaseResources
+> Task :react-native-google-signin_google-signin:generateCodegenSchemaFromJavaScript
+> Task :react-native-google-signin_google-signin:generateCodegenArtifactsFromSchema
+> Task :react-native-google-signin_google-signin:preBuild
+> Task :react-native-google-signin_google-signin:preReleaseBuild
+> Task :react-native-google-signin_google-signin:generateReleaseResValues
+> Task :react-native-google-signin_google-signin:generateReleaseResources
+> Task :react-native-google-signin_google-signin:packageReleaseResources
+> Task :react-native-sqlite-storage:preBuild UP-TO-DATE
+> Task :react-native-sqlite-storage:preReleaseBuild UP-TO-DATE
+> Task :react-native-sqlite-storage:generateReleaseResValues
+> Task :react-native-sqlite-storage:generateReleaseResources
+> Task :react-native-sqlite-storage:packageReleaseResources
+> Task :react-native-svg:generateCodegenSchemaFromJavaScript
+> Task :react-native-svg:generateCodegenArtifactsFromSchema
+> Task :react-native-svg:preBuild
+> Task :react-native-svg:preReleaseBuild
+> Task :react-native-svg:generateReleaseResValues
+> Task :react-native-svg:generateReleaseResources
+> Task :react-native-svg:packageReleaseResources
+> Task :react-native-version-check:preBuild UP-TO-DATE
+> Task :react-native-version-check:preReleaseBuild UP-TO-DATE
+> Task :react-native-version-check:generateReleaseResValues
+> Task :react-native-version-check:generateReleaseResources
+> Task :react-native-version-check:packageReleaseResources
+> Task :app:mapReleaseSourceSetPaths
+> Task :app:generateReleaseResources
+> Task :app:createReleaseCompatibleScreenManifests
+> Task :app:extractDeepLinksRelease
+> Task :react-native-async-storage_async-storage:extractDeepLinksRelease
+> Task :react-native-device-info:extractDeepLinksRelease
+
+> Task :react-native-async-storage_async-storage:processReleaseManifest
+package="com.reactnativecommunity.asyncstorage" found in source AndroidManifest.xml: D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\@react-native-async-storage\async-storage\android\src\main\AndroidManifest.xml.
+Setting the namespace via the package attribute in the source AndroidManifest.xml is no longer supported, and the value is ignored.
+Recommendation: remove package="com.reactnativecommunity.asyncstorage" from the source AndroidManifest.xml: D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\@react-native-async-storage\async-storage\android\src\main\AndroidManifest.xml.
+
+> Task :react-native-firebase_app:extractDeepLinksRelease
+
+> Task :react-native-device-info:processReleaseManifest
+package="com.learnium.RNDeviceInfo" found in source AndroidManifest.xml: D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\react-native-device-info\android\src\main\AndroidManifest.xml.
+Setting the namespace via the package attribute in the source AndroidManifest.xml is no longer supported, and the value is ignored.
+Recommendation: remove package="com.learnium.RNDeviceInfo" from the source AndroidManifest.xml: D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\react-native-device-info\android\src\main\AndroidManifest.xml.
+
+> Task :react-native-firebase_auth:extractDeepLinksRelease
+
+> Task :react-native-firebase_app:processReleaseManifest
+package="io.invertase.firebase" found in source AndroidManifest.xml: D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\@react-native-firebase\app\android\src\main\AndroidManifest.xml.
+Setting the namespace via the package attribute in the source AndroidManifest.xml is no longer supported, and the value is ignored.
+Recommendation: remove package="io.invertase.firebase" from the source AndroidManifest.xml: D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\@react-native-firebase\app\android\src\main\AndroidManifest.xml.
+
+> Task :react-native-firebase_firestore:extractDeepLinksRelease
+> Task :react-native-fs:extractDeepLinksRelease
+
+> Task :react-native-firebase_firestore:processReleaseManifest
+package="io.invertase.firebase.firestore" found in source AndroidManifest.xml: D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\@react-native-firebase\firestore\android\src\main\AndroidManifest.xml.
+Setting the namespace via the package attribute in the source AndroidManifest.xml is no longer supported, and the value is ignored.
+Recommendation: remove package="io.invertase.firebase.firestore" from the source AndroidManifest.xml: D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\@react-native-firebase\firestore\android\src\main\AndroidManifest.xml.
+
+> Task :react-native-google-mobile-ads:extractDeepLinksRelease
+
+> Task :react-native-firebase_auth:processReleaseManifest
+package="io.invertase.firebase.auth" found in source AndroidManifest.xml: D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\@react-native-firebase\auth\android\src\main\AndroidManifest.xml.
+Setting the namespace via the package attribute in the source AndroidManifest.xml is no longer supported, and the value is ignored.
+Recommendation: remove package="io.invertase.firebase.auth" from the source AndroidManifest.xml: D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\@react-native-firebase\auth\android\src\main\AndroidManifest.xml.
+
+> Task :react-native-fs:processReleaseManifest
+package="com.rnfs" found in source AndroidManifest.xml: D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\react-native-fs\android\src\main\AndroidManifest.xml.
+Setting the namespace via the package attribute in the source AndroidManifest.xml is no longer supported, and the value is ignored.
+Recommendation: remove package="com.rnfs" from the source AndroidManifest.xml: D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\react-native-fs\android\src\main\AndroidManifest.xml.
+
+> Task :react-native-google-signin_google-signin:extractDeepLinksRelease
+
+> Task :react-native-google-mobile-ads:processReleaseManifest
+package="io.invertase.googlemobileads" found in source AndroidManifest.xml: D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\react-native-google-mobile-ads\android\src\main\AndroidManifest.xml.
+Setting the namespace via the package attribute in the source AndroidManifest.xml is no longer supported, and the value is ignored.
+Recommendation: remove package="io.invertase.googlemobileads" from the source AndroidManifest.xml: D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\react-native-google-mobile-ads\android\src\main\AndroidManifest.xml.
+
+> Task :react-native-sqlite-storage:extractDeepLinksRelease
+> Task :react-native-svg:extractDeepLinksRelease
+
+> Task :react-native-sqlite-storage:processReleaseManifest
+package="org.pgsqlite" found in source AndroidManifest.xml: D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\react-native-sqlite-storage\platforms\android\src\main\AndroidManifest.xml.
+Setting the namespace via the package attribute in the source AndroidManifest.xml is no longer supported, and the value is ignored.
+Recommendation: remove package="org.pgsqlite" from the source AndroidManifest.xml: D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\react-native-sqlite-storage\platforms\android\src\main\AndroidManifest.xml.
+
+> Task :react-native-version-check:extractDeepLinksRelease
+> Task :react-native-svg:processReleaseManifest
+> Task :react-native-async-storage_async-storage:writeReleaseAarMetadata
+> Task :react-native-device-info:writeReleaseAarMetadata
+> Task :react-native-firebase_app:writeReleaseAarMetadata
+
+> Task :react-native-google-signin_google-signin:processReleaseManifest
+package="com.reactnativegooglesignin" found in source AndroidManifest.xml: D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\@react-native-google-signin\google-signin\android\src\main\AndroidManifest.xml.
+Setting the namespace via the package attribute in the source AndroidManifest.xml is no longer supported, and the value is ignored.
+Recommendation: remove package="com.reactnativegooglesignin" from the source AndroidManifest.xml: D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\@react-native-google-signin\google-signin\android\src\main\AndroidManifest.xml.
+
+> Task :react-native-version-check:processReleaseManifest
+package="io.xogus.reactnative.versioncheck" found in source AndroidManifest.xml: D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\react-native-version-check\android\src\main\AndroidManifest.xml.
+Setting the namespace via the package attribute in the source AndroidManifest.xml is no longer supported, and the value is ignored.
+Recommendation: remove package="io.xogus.reactnative.versioncheck" from the source AndroidManifest.xml: D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\react-native-version-check\android\src\main\AndroidManifest.xml.
+
+> Task :react-native-firebase_auth:writeReleaseAarMetadata
+> Task :react-native-firebase_firestore:writeReleaseAarMetadata
+> Task :app:processReleaseMainManifest
+> Task :app:processReleaseManifest
+> Task :app:processApplicationManifestReleaseForBundle
+> Task :react-native-fs:writeReleaseAarMetadata
+> Task :react-native-google-mobile-ads:writeReleaseAarMetadata
+> Task :react-native-google-signin_google-signin:writeReleaseAarMetadata
+> Task :react-native-sqlite-storage:writeReleaseAarMetadata
+> Task :react-native-svg:writeReleaseAarMetadata
+> Task :react-native-version-check:writeReleaseAarMetadata
+> Task :app:packageReleaseResources
+> Task :react-native-async-storage_async-storage:compileReleaseLibraryResources
+> Task :react-native-async-storage_async-storage:parseReleaseLocalResources
+> Task :react-native-device-info:compileReleaseLibraryResources
+> Task :app:parseReleaseLocalResources
+> Task :app:checkReleaseAarMetadata
+> Task :react-native-device-info:parseReleaseLocalResources
+> Task :react-native-async-storage_async-storage:generateReleaseRFile
+> Task :react-native-firebase_app:compileReleaseLibraryResources
+> Task :react-native-device-info:generateReleaseRFile
+> Task :react-native-firebase_auth:compileReleaseLibraryResources
+> Task :react-native-firebase_app:parseReleaseLocalResources
+> Task :react-native-firebase_auth:parseReleaseLocalResources
+> Task :app:processReleaseManifestForPackage
+> Task :react-native-firebase_app:generateReleaseRFile
+> Task :react-native-firebase_firestore:compileReleaseLibraryResources
+> Task :react-native-firebase_auth:generateReleaseRFile
+> Task :react-native-firebase_firestore:parseReleaseLocalResources
+> Task :react-native-fs:compileReleaseLibraryResources
+> Task :react-native-firebase_firestore:generateReleaseRFile
+> Task :react-native-fs:parseReleaseLocalResources
+> Task :react-native-google-mobile-ads:compileReleaseLibraryResources
+> Task :react-native-google-mobile-ads:parseReleaseLocalResources
+> Task :react-native-google-signin_google-signin:compileReleaseLibraryResources
+> Task :react-native-google-signin_google-signin:parseReleaseLocalResources
+> Task :react-native-google-mobile-ads:generateReleaseRFile
+> Task :react-native-google-signin_google-signin:generateReleaseRFile
+> Task :react-native-sqlite-storage:compileReleaseLibraryResources
+> Task :react-native-fs:generateReleaseRFile
+> Task :react-native-sqlite-storage:parseReleaseLocalResources
+> Task :react-native-svg:compileReleaseLibraryResources
+> Task :react-native-svg:parseReleaseLocalResources
+> Task :react-native-version-check:compileReleaseLibraryResources
+> Task :app:extractReleaseVersionControlInfo
+> Task :react-native-version-check:parseReleaseLocalResources
+> Task :react-native-google-signin_google-signin:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :react-native-svg:generateReleaseRFile
+> Task :react-native-google-signin_google-signin:generateReleaseBuildConfig
+> Task :react-native-sqlite-storage:generateReleaseRFile
+> Task :react-native-version-check:generateReleaseRFile
+> Task :react-native-google-mobile-ads:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :react-native-google-signin_google-signin:javaPreCompileRelease
+> Task :react-native-google-mobile-ads:generateReleaseBuildConfig
+> Task :react-native-google-mobile-ads:javaPreCompileRelease
+> Task :react-native-async-storage_async-storage:generateReleaseBuildConfig
+> Task :react-native-async-storage_async-storage:javaPreCompileRelease
+> Task :react-native-firebase_app:generateReleaseBuildConfig
+
+> Task :react-native-async-storage_async-storage:compileReleaseJavaWithJavac
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+Note: D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\@react-native-async-storage\async-storage\android\src\javaPackage\java\com\reactnativecommunity\asyncstorage\AsyncStoragePackage.java uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+
+> Task :react-native-firebase_app:javaPreCompileRelease
+> Task :react-native-firebase_auth:generateReleaseBuildConfig
+> Task :react-native-async-storage_async-storage:bundleLibRuntimeToDirRelease
+
+> Task :react-native-google-signin_google-signin:compileReleaseKotlin
+w: file:///D:/android/Projects/DailySudoku/daily-sudoku2/node_modules/@react-native-google-signin/google-signin/android/src/main/java/com/reactnativegooglesignin/ErrorDto.kt:3:8 'class GoogleSignInStatusCodes : CommonStatusCodes' is deprecated. Deprecated in Java.
+w: file:///D:/android/Projects/DailySudoku/daily-sudoku2/node_modules/@react-native-google-signin/google-signin/android/src/main/java/com/reactnativegooglesignin/ErrorDto.kt:23:31 Condition is always 'true'.
+w: file:///D:/android/Projects/DailySudoku/daily-sudoku2/node_modules/@react-native-google-signin/google-signin/android/src/main/java/com/reactnativegooglesignin/ErrorDto.kt:24:16 'class GoogleSignInStatusCodes : CommonStatusCodes' is deprecated. Deprecated in Java.
+w: file:///D:/android/Projects/DailySudoku/daily-sudoku2/node_modules/@react-native-google-signin/google-signin/android/src/main/java/com/reactnativegooglesignin/ErrorDto.kt:29:33 'class GoogleSignInStatusCodes : CommonStatusCodes' is deprecated. Deprecated in Java.
+w: file:///D:/android/Projects/DailySudoku/daily-sudoku2/node_modules/@react-native-google-signin/google-signin/android/src/main/java/com/reactnativegooglesignin/ErrorDto.kt:30:38 'class GoogleSignInStatusCodes : CommonStatusCodes' is deprecated. Deprecated in Java.
+
+> Task :react-native-firebase_app:compileReleaseJavaWithJavac
+D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\@react-native-firebase\app\android\src\reactnative\java\io\invertase\firebase\common\ReactNativeFirebaseModule.java:132: warning: [removal] getCurrentActivity() in ReactContextBaseJavaModule has been deprecated and marked for removal
+    return getCurrentActivity();
+           ^
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+1 warning
+
+> Task :react-native-google-signin_google-signin:compileReleaseJavaWithJavac
+D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\@react-native-google-signin\google-signin\android\src\main\java\com\reactnativegooglesignin\RNGoogleSigninModule.java:97: warning: [removal] getCurrentActivity() in ReactContextBaseJavaModule has been deprecated and marked for removal
+        Activity activity = getCurrentActivity();
+                            ^
+D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\@react-native-google-signin\google-signin\android\src\main\java\com\reactnativegooglesignin\RNGoogleSigninModule.java:183: warning: [removal] getCurrentActivity() in ReactContextBaseJavaModule has been deprecated and marked for removal
+        final Activity activity = getCurrentActivity();
+                                  ^
+D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\@react-native-google-signin\google-signin\android\src\main\java\com\reactnativegooglesignin\RNGoogleSigninModule.java:198: warning: [removal] getCurrentActivity() in ReactContextBaseJavaModule has been deprecated and marked for removal
+      final Activity activity = getCurrentActivity();
+                                ^
+D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\@react-native-google-signin\google-signin\android\src\main\java\com\reactnativegooglesignin\RNGoogleSigninModule.java:370: warning: [removal] getCurrentActivity() in ReactContextBaseJavaModule has been deprecated and marked for removal
+            Activity activity = moduleInstance.getCurrentActivity();
+                                              ^
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+Note: D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\@react-native-google-signin\google-signin\android\src\main\java\com\reactnativegooglesignin\RNGoogleSigninModule.java uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+4 warnings
+
+> Task :react-native-firebase_auth:javaPreCompileRelease
+> Task :react-native-firebase_firestore:generateReleaseBuildConfig
+> Task :react-native-firebase_firestore:javaPreCompileRelease
+> Task :react-native-google-signin_google-signin:bundleLibRuntimeToDirRelease
+> Task :react-native-device-info:generateReleaseBuildConfig
+> Task :react-native-device-info:javaPreCompileRelease
+> Task :react-native-fs:generateReleaseBuildConfig
+> Task :react-native-firebase_app:bundleLibCompileToJarRelease
+> Task :react-native-firebase_app:bundleLibRuntimeToDirRelease
+
+> Task :react-native-device-info:compileReleaseJavaWithJavac
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+
+> Task :react-native-google-mobile-ads:compileReleaseKotlin
+w: file:///D:/android/Projects/DailySudoku/daily-sudoku2/node_modules/react-native-google-mobile-ads/android/src/main/java/io/invertase/googlemobileads/OnNativeEvent.kt:6:68 'constructor<T : Event<T>>(viewTag: Int): Event<T>' is deprecated. Use constructor with explicit surfaceId instead.
+w: file:///D:/android/Projects/DailySudoku/daily-sudoku2/node_modules/react-native-google-mobile-ads/android/src/main/java/io/invertase/googlemobileads/ReactNativeGoogleMobileAdsFullScreenAdModule.kt:72:20 'val currentActivity: Activity?' is deprecated. Deprecated in Java.
+w: file:///D:/android/Projects/DailySudoku/daily-sudoku2/node_modules/react-native-google-mobile-ads/android/src/main/java/io/invertase/googlemobileads/ReactNativeGoogleMobileAdsFullScreenAdModule.kt:108:20 'val currentActivity: Activity?' is deprecated. Deprecated in Java.
+w: file:///D:/android/Projects/DailySudoku/daily-sudoku2/node_modules/react-native-google-mobile-ads/android/src/main/java/io/invertase/googlemobileads/ReactNativeGoogleMobileAdsPackage.kt:20:8 'class TurboReactPackage : BaseReactPackage' is deprecated. Use BaseReactPackage instead.
+w: file:///D:/android/Projects/DailySudoku/daily-sudoku2/node_modules/react-native-google-mobile-ads/android/src/main/java/io/invertase/googlemobileads/ReactNativeGoogleMobileAdsPackage.kt:28:43 'class TurboReactPackage : BaseReactPackage' is deprecated. Use BaseReactPackage instead.
+
+> Task :app:mergeReleaseResources
+
+> Task :react-native-firebase_auth:compileReleaseJavaWithJavac
+D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\@react-native-firebase\auth\android\src\main\java\io\invertase\firebase\auth\ReactNativeFirebaseAuthModule.java:986: warning: [removal] getCurrentActivity() in ReactContextBaseJavaModule has been deprecated and marked for removal
+          .startActivityForSignInWithProvider(getCurrentActivity(), builder.build())
+                                              ^
+D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\@react-native-firebase\auth\android\src\main\java\io\invertase\firebase\auth\ReactNativeFirebaseAuthModule.java:1012: warning: [removal] getCurrentActivity() in ReactContextBaseJavaModule has been deprecated and marked for removal
+    Activity activity = getCurrentActivity();
+                        ^
+D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\@react-native-firebase\auth\android\src\main\java\io\invertase\firebase\auth\ReactNativeFirebaseAuthModule.java:1195: warning: [removal] getCurrentActivity() in ReactContextBaseJavaModule has been deprecated and marked for removal
+    final Activity activity = getCurrentActivity();
+                              ^
+D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\@react-native-firebase\auth\android\src\main\java\io\invertase\firebase\auth\ReactNativeFirebaseAuthModule.java:1244: warning: [removal] getCurrentActivity() in ReactContextBaseJavaModule has been deprecated and marked for removal
+            .setActivity(getCurrentActivity())
+                         ^
+D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\@react-native-firebase\auth\android\src\main\java\io\invertase\firebase\auth\ReactNativeFirebaseAuthModule.java:1540: warning: [removal] getCurrentActivity() in ReactContextBaseJavaModule has been deprecated and marked for removal
+    final Activity activity = getCurrentActivity();
+                              ^
+D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\@react-native-firebase\auth\android\src\main\java\io\invertase\firebase\auth\ReactNativeFirebaseAuthModule.java:1877: warning: [removal] getCurrentActivity() in ReactContextBaseJavaModule has been deprecated and marked for removal
+      user.startActivityForLinkWithProvider(getCurrentActivity(), builder.build())
+                                            ^
+D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\@react-native-firebase\auth\android\src\main\java\io\invertase\firebase\auth\ReactNativeFirebaseAuthModule.java:2021: warning: [removal] getCurrentActivity() in ReactContextBaseJavaModule has been deprecated and marked for removal
+      user.startActivityForReauthenticateWithProvider(getCurrentActivity(), builder.build())
+                                                      ^
+Note: D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\@react-native-firebase\auth\android\src\main\java\io\invertase\firebase\auth\ReactNativeFirebaseAuthModule.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+Note: D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\@react-native-firebase\auth\android\src\main\java\io\invertase\firebase\auth\ReactNativeFirebaseAuthModule.java uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+7 warnings
+
+> Task :react-native-google-mobile-ads:compileReleaseJavaWithJavac
+D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\react-native-google-mobile-ads\android\src\main\java\io\invertase\googlemobileads\common\ReactNativeModule.java:83: warning: [removal] getCurrentActivity() in ReactContextBaseJavaModule has been deprecated and marked for removal
+    return getCurrentActivity();
+           ^
+D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\react-native-google-mobile-ads\android\src\main\java\io\invertase\googlemobileads\ReactNativeGoogleMobileAdsConsentModule.java:114: warning: [removal] getCurrentActivity() in ReactContextBaseJavaModule has been deprecated and marked for removal
+      Activity currentActivity = getCurrentActivity();
+                                 ^
+D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\react-native-google-mobile-ads\android\src\main\java\io\invertase\googlemobileads\ReactNativeGoogleMobileAdsConsentModule.java:141: warning: [removal] getCurrentActivity() in ReactContextBaseJavaModule has been deprecated and marked for removal
+      Activity currentActivity = getCurrentActivity();
+                                 ^
+D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\react-native-google-mobile-ads\android\src\main\java\io\invertase\googlemobileads\ReactNativeGoogleMobileAdsConsentModule.java:177: warning: [removal] getCurrentActivity() in ReactContextBaseJavaModule has been deprecated and marked for removal
+      Activity currentActivity = getCurrentActivity();
+                                 ^
+D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\react-native-google-mobile-ads\android\src\main\java\io\invertase\googlemobileads\ReactNativeGoogleMobileAdsConsentModule.java:207: warning: [removal] getCurrentActivity() in ReactContextBaseJavaModule has been deprecated and marked for removal
+      Activity currentActivity = getCurrentActivity();
+                                 ^
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+Note: D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\react-native-google-mobile-ads\android\src\main\java\io\invertase\googlemobileads\ReactNativeGoogleMobileAdsCommon.java uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+5 warnings
+
+> Task :react-native-firebase_auth:bundleLibRuntimeToDirRelease
+> Task :react-native-google-mobile-ads:bundleLibRuntimeToDirRelease
+> Task :app:processReleaseResources
+
+> Task :react-native-firebase_firestore:compileReleaseJavaWithJavac
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+Note: Some input files use unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+
+> Task :react-native-fs:javaPreCompileRelease
+> Task :react-native-sqlite-storage:generateReleaseBuildConfig
+> Task :react-native-device-info:bundleLibRuntimeToDirRelease
+> Task :react-native-firebase_firestore:bundleLibRuntimeToDirRelease
+
+> Task :react-native-fs:compileReleaseJavaWithJavac
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+
+> Task :react-native-sqlite-storage:javaPreCompileRelease
+> Task :react-native-svg:generateReleaseBuildConfig
+> Task :react-native-fs:bundleLibRuntimeToDirRelease
+> Task :app:bundleReleaseResources
+> Task :react-native-sqlite-storage:compileReleaseJavaWithJavac
+> Task :react-native-svg:javaPreCompileRelease
+> Task :react-native-version-check:generateReleaseBuildConfig
+> Task :react-native-sqlite-storage:bundleLibRuntimeToDirRelease
+
+> Task :react-native-svg:compileReleaseJavaWithJavac
+Note: Some input files use or override a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+Note: Some input files use unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+
+> Task :react-native-version-check:javaPreCompileRelease
+> Task :app:checkReleaseDuplicateClasses
+> Task :react-native-svg:bundleLibRuntimeToDirRelease
+
+> Task :react-native-version-check:compileReleaseJavaWithJavac
+Note: D:\android\Projects\DailySudoku\daily-sudoku2\node_modules\react-native-version-check\android\src\main\java\io\xogus\reactnative\versioncheck\RNVersionCheckModule.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+
+> Task :react-native-version-check:bundleLibRuntimeToDirRelease
+> Task :app:buildKotlinToolingMetadata
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:generateReleaseBuildConfig
+> Task :react-native-device-info:bundleLibCompileToJarRelease
+> Task :react-native-async-storage_async-storage:bundleLibCompileToJarRelease
+> Task :react-native-firebase_auth:bundleLibCompileToJarRelease
+> Task :react-native-firebase_firestore:bundleLibCompileToJarRelease
+> Task :react-native-fs:bundleLibCompileToJarRelease
+> Task :app:javaPreCompileRelease
+> Task :app:desugarReleaseFileDependencies
+> Task :app:mergeReleaseStartupProfile
+> Task :react-native-sqlite-storage:bundleLibCompileToJarRelease
+> Task :react-native-google-signin_google-signin:bundleLibCompileToJarRelease
+> Task :react-native-version-check:bundleLibCompileToJarRelease
+> Task :react-native-google-mobile-ads:bundleLibCompileToJarRelease
+> Task :react-native-svg:bundleLibCompileToJarRelease
+> Task :app:mergeReleaseShaders
+> Task :app:compileReleaseShaders NO-SOURCE
+> Task :app:generateReleaseAssets UP-TO-DATE
+> Task :react-native-async-storage_async-storage:mergeReleaseShaders
+> Task :react-native-async-storage_async-storage:compileReleaseShaders NO-SOURCE
+> Task :react-native-async-storage_async-storage:generateReleaseAssets UP-TO-DATE
+> Task :react-native-async-storage_async-storage:mergeReleaseAssets
+> Task :react-native-device-info:mergeReleaseShaders
+> Task :react-native-device-info:compileReleaseShaders NO-SOURCE
+> Task :react-native-device-info:generateReleaseAssets UP-TO-DATE
+> Task :react-native-device-info:mergeReleaseAssets
+> Task :react-native-firebase_app:mergeReleaseShaders
+> Task :react-native-firebase_app:compileReleaseShaders NO-SOURCE
+> Task :react-native-firebase_app:generateReleaseAssets UP-TO-DATE
+> Task :react-native-firebase_app:mergeReleaseAssets
+> Task :react-native-firebase_auth:mergeReleaseShaders
+> Task :react-native-firebase_auth:compileReleaseShaders NO-SOURCE
+> Task :react-native-firebase_auth:generateReleaseAssets UP-TO-DATE
+> Task :react-native-firebase_auth:mergeReleaseAssets
+> Task :react-native-firebase_firestore:mergeReleaseShaders
+> Task :react-native-firebase_firestore:compileReleaseShaders NO-SOURCE
+> Task :react-native-firebase_firestore:generateReleaseAssets UP-TO-DATE
+> Task :react-native-firebase_firestore:mergeReleaseAssets
+> Task :react-native-fs:mergeReleaseShaders
+> Task :react-native-fs:compileReleaseShaders NO-SOURCE
+> Task :react-native-fs:generateReleaseAssets UP-TO-DATE
+> Task :react-native-fs:mergeReleaseAssets
+> Task :react-native-google-mobile-ads:mergeReleaseShaders
+> Task :react-native-google-mobile-ads:compileReleaseShaders NO-SOURCE
+> Task :react-native-google-mobile-ads:generateReleaseAssets UP-TO-DATE
+> Task :react-native-google-mobile-ads:mergeReleaseAssets
+> Task :react-native-google-signin_google-signin:mergeReleaseShaders
+> Task :react-native-google-signin_google-signin:compileReleaseShaders NO-SOURCE
+> Task :react-native-google-signin_google-signin:generateReleaseAssets UP-TO-DATE
+> Task :react-native-google-signin_google-signin:mergeReleaseAssets
+> Task :react-native-sqlite-storage:mergeReleaseShaders
+> Task :react-native-sqlite-storage:compileReleaseShaders NO-SOURCE
+> Task :react-native-sqlite-storage:generateReleaseAssets UP-TO-DATE
+> Task :react-native-sqlite-storage:mergeReleaseAssets
+> Task :react-native-svg:mergeReleaseShaders
+> Task :react-native-svg:compileReleaseShaders NO-SOURCE
+> Task :react-native-svg:generateReleaseAssets UP-TO-DATE
+> Task :react-native-svg:mergeReleaseAssets
+> Task :react-native-version-check:mergeReleaseShaders
+> Task :react-native-version-check:compileReleaseShaders NO-SOURCE
+> Task :react-native-version-check:generateReleaseAssets UP-TO-DATE
+> Task :react-native-version-check:mergeReleaseAssets
+> Task :app:mergeReleaseAssets
+> Task :react-native-google-signin_google-signin:bundleLibRuntimeToJarRelease
+> Task :react-native-async-storage_async-storage:bundleLibRuntimeToJarRelease
+> Task :react-native-firebase_auth:bundleLibRuntimeToJarRelease
+> Task :react-native-firebase_app:bundleLibRuntimeToJarRelease
+> Task :react-native-firebase_firestore:bundleLibRuntimeToJarRelease
+> Task :react-native-async-storage_async-storage:processReleaseJavaRes NO-SOURCE
+> Task :react-native-version-check:bundleLibRuntimeToJarRelease
+> Task :react-native-device-info:bundleLibRuntimeToJarRelease
+> Task :react-native-device-info:processReleaseJavaRes NO-SOURCE
+> Task :react-native-firebase_app:processReleaseJavaRes NO-SOURCE
+> Task :react-native-firebase_auth:processReleaseJavaRes NO-SOURCE
+> Task :react-native-firebase_firestore:processReleaseJavaRes NO-SOURCE
+> Task :react-native-sqlite-storage:bundleLibRuntimeToJarRelease
+> Task :react-native-fs:processReleaseJavaRes NO-SOURCE
+> Task :react-native-fs:bundleLibRuntimeToJarRelease
+> Task :react-native-google-mobile-ads:processReleaseJavaRes
+> Task :react-native-google-mobile-ads:bundleLibRuntimeToJarRelease
+> Task :react-native-google-signin_google-signin:processReleaseJavaRes
+> Task :react-native-sqlite-storage:processReleaseJavaRes NO-SOURCE
+> Task :react-native-svg:processReleaseJavaRes NO-SOURCE
+> Task :react-native-version-check:processReleaseJavaRes NO-SOURCE
+> Task :react-native-svg:bundleLibRuntimeToJarRelease
+
+> Task :app:compileReleaseKotlin
+w: file:///D:/android/Projects/DailySudoku/daily-sudoku2/android/app/src/main/java/com/dailysudoku/MainActivity.kt:38:14 'fun setDecorFitsSystemWindows(p0: Boolean): Unit' is deprecated. Deprecated in Java.
+
+> Task :app:configureCMakeRelWithDebInfo[arm64-v8a]
+C/C++: CMake Warning in D:/android/Projects/DailySudoku/daily-sudoku2/node_modules/@react-native-google-signin/google-signin/android/build/generated/source/codegen/jni/CMakeLists.txt:
+C/C++:   The object file directory
+C/C++:     D:/android/Projects/DailySudoku/daily-sudoku2/android/app/.cxx/RelWithDebInfo/81535h1o/arm64-v8a/RNGoogleSignInCGen_autolinked_build/CMakeFiles/react_codegen_RNGoogleSignInCGen.dir/./
+C/C++:   has 183 characters.  The maximum full path to an object file is 250
+C/C++:   characters (see CMAKE_OBJECT_PATH_MAX).  Object file
+C/C++:     react/renderer/components/RNGoogleSignInCGen/RNGoogleSignInCGenJSI-generated.cpp.o
+C/C++:   cannot be safely placed under this directory.  The build may not work
+C/C++:   correctly.
+C/C++: CMake Warning in D:/android/Projects/DailySudoku/daily-sudoku2/node_modules/react-native-google-mobile-ads/android/build/generated/source/codegen/jni/CMakeLists.txt:
+C/C++:   The object file directory
+C/C++:     D:/android/Projects/DailySudoku/daily-sudoku2/android/app/.cxx/RelWithDebInfo/81535h1o/arm64-v8a/RNGoogleMobileAdsSpec_autolinked_build/CMakeFiles/react_codegen_RNGoogleMobileAdsSpec.dir/./
+C/C++:   has 189 characters.  The maximum full path to an object file is 250
+C/C++:   characters (see CMAKE_OBJECT_PATH_MAX).  Object file
+C/C++:     react/renderer/components/RNGoogleMobileAdsSpec/RNGoogleMobileAdsSpecJSI-generated.cpp.o
+C/C++:   cannot be safely placed under this directory.  The build may not work
+C/C++:   correctly.
+
+> Task :app:mergeExtDexRelease
+> Task :app:compileReleaseJavaWithJavac
+> Task :app:dexBuilderRelease
+> Task :app:processReleaseJavaRes
+> Task :app:mergeReleaseGlobalSynthetics
+> Task :app:mergeDexRelease
+> Task :app:mergeReleaseJavaResource
+
+> Task :app:buildCMakeRelWithDebInfo[arm64-v8a]
+C/C++: Hard link from 'C:\Users\admin\.gradle\caches\8.14.1\transforms\801bf0e8bfdff1ee665d4a47bda01c75\transformed\react-android-0.80.2-release\prefab\modules\reactnative\libs\android.arm64-v8a\libreactnative.so' to 'D:\android\Projects\DailySudoku\daily-sudoku2\android\app\build\intermediates\cxx\RelWithDebInfo\81535h1o\obj\arm64-v8a\libreactnative.so' failed. Doing a slower copy instead.
+C/C++: Hard link from 'C:\Users\admin\.gradle\caches\8.14.1\transforms\801bf0e8bfdff1ee665d4a47bda01c75\transformed\react-android-0.80.2-release\prefab\modules\reactnative\libs\android.arm64-v8a\libreactnative.so' to 'D:\android\Projects\DailySudoku\daily-sudoku2\android\app\build\intermediates\cxx\RelWithDebInfo\81535h1o\obj\arm64-v8a\libreactnative.so' failed. Doing a slower copy instead.
+
+> Task :app:configureCMakeRelWithDebInfo[armeabi-v7a]
+C/C++: CMake Warning in D:/android/Projects/DailySudoku/daily-sudoku2/node_modules/@react-native-google-signin/google-signin/android/build/generated/source/codegen/jni/CMakeLists.txt:
+C/C++:   The object file directory
+C/C++:     D:/android/Projects/DailySudoku/daily-sudoku2/android/app/.cxx/RelWithDebInfo/81535h1o/armeabi-v7a/RNGoogleSignInCGen_autolinked_build/CMakeFiles/react_codegen_RNGoogleSignInCGen.dir/./
+C/C++:   has 185 characters.  The maximum full path to an object file is 250
+C/C++:   characters (see CMAKE_OBJECT_PATH_MAX).  Object file
+C/C++:     react/renderer/components/RNGoogleSignInCGen/RNGoogleSignInCGenJSI-generated.cpp.o
+C/C++:   cannot be safely placed under this directory.  The build may not work
+C/C++:   correctly.
+C/C++: CMake Warning in D:/android/Projects/DailySudoku/daily-sudoku2/node_modules/react-native-google-mobile-ads/android/build/generated/source/codegen/jni/CMakeLists.txt:
+C/C++:   The object file directory
+C/C++:     D:/android/Projects/DailySudoku/daily-sudoku2/android/app/.cxx/RelWithDebInfo/81535h1o/armeabi-v7a/RNGoogleMobileAdsSpec_autolinked_build/CMakeFiles/react_codegen_RNGoogleMobileAdsSpec.dir/./
+C/C++:   has 191 characters.  The maximum full path to an object file is 250
+C/C++:   characters (see CMAKE_OBJECT_PATH_MAX).  Object file
+C/C++:     react/renderer/components/RNGoogleMobileAdsSpec/RNGoogleMobileAdsSpecJSI-generated.cpp.o
+C/C++:   cannot be safely placed under this directory.  The build may not work
+C/C++:   correctly.
+
+> Task :app:buildCMakeRelWithDebInfo[armeabi-v7a]
+
+> Task :app:configureCMakeRelWithDebInfo[x86]
+C/C++: CMake Warning in D:/android/Projects/DailySudoku/daily-sudoku2/node_modules/react-native-google-mobile-ads/android/build/generated/source/codegen/jni/CMakeLists.txt:
+C/C++:   The object file directory
+C/C++:     D:/android/Projects/DailySudoku/daily-sudoku2/android/app/.cxx/RelWithDebInfo/81535h1o/x86/RNGoogleMobileAdsSpec_autolinked_build/CMakeFiles/react_codegen_RNGoogleMobileAdsSpec.dir/./
+C/C++:   has 183 characters.  The maximum full path to an object file is 250
+C/C++:   characters (see CMAKE_OBJECT_PATH_MAX).  Object file
+C/C++:     react/renderer/components/RNGoogleMobileAdsSpec/RNGoogleMobileAdsSpecJSI-generated.cpp.o
+C/C++:   cannot be safely placed under this directory.  The build may not work
+C/C++:   correctly.
+
+> Task :app:buildCMakeRelWithDebInfo[x86]
+
+> Task :app:configureCMakeRelWithDebInfo[x86_64]
+C/C++: CMake Warning in D:/android/Projects/DailySudoku/daily-sudoku2/node_modules/react-native-google-mobile-ads/android/build/generated/source/codegen/jni/CMakeLists.txt:
+C/C++:   The object file directory
+C/C++:     D:/android/Projects/DailySudoku/daily-sudoku2/android/app/.cxx/RelWithDebInfo/81535h1o/x86_64/RNGoogleMobileAdsSpec_autolinked_build/CMakeFiles/react_codegen_RNGoogleMobileAdsSpec.dir/./
+C/C++:   has 186 characters.  The maximum full path to an object file is 250
+C/C++:   characters (see CMAKE_OBJECT_PATH_MAX).  Object file
+C/C++:     react/renderer/components/RNGoogleMobileAdsSpec/RNGoogleMobileAdsSpecJSI-generated.cpp.o
+C/C++:   cannot be safely placed under this directory.  The build may not work
+C/C++:   correctly.
+
+> Task :app:buildCMakeRelWithDebInfo[x86_64]
+> Task :app:mergeReleaseJniLibFolders
+> Task :react-native-async-storage_async-storage:mergeReleaseJniLibFolders
+> Task :react-native-async-storage_async-storage:mergeReleaseNativeLibs NO-SOURCE
+> Task :react-native-async-storage_async-storage:copyReleaseJniLibsProjectOnly
+> Task :react-native-device-info:mergeReleaseJniLibFolders
+> Task :react-native-device-info:mergeReleaseNativeLibs NO-SOURCE
+> Task :react-native-device-info:copyReleaseJniLibsProjectOnly
+> Task :react-native-firebase_app:mergeReleaseJniLibFolders
+> Task :react-native-firebase_app:mergeReleaseNativeLibs NO-SOURCE
+> Task :react-native-firebase_app:copyReleaseJniLibsProjectOnly
+> Task :react-native-firebase_auth:mergeReleaseJniLibFolders
+> Task :react-native-firebase_auth:mergeReleaseNativeLibs NO-SOURCE
+> Task :react-native-firebase_auth:copyReleaseJniLibsProjectOnly
+> Task :react-native-firebase_firestore:mergeReleaseJniLibFolders
+> Task :react-native-firebase_firestore:mergeReleaseNativeLibs NO-SOURCE
+> Task :react-native-firebase_firestore:copyReleaseJniLibsProjectOnly
+> Task :react-native-fs:mergeReleaseJniLibFolders
+> Task :react-native-fs:mergeReleaseNativeLibs NO-SOURCE
+> Task :react-native-fs:copyReleaseJniLibsProjectOnly
+> Task :react-native-google-mobile-ads:mergeReleaseJniLibFolders
+> Task :react-native-google-mobile-ads:mergeReleaseNativeLibs NO-SOURCE
+> Task :react-native-google-mobile-ads:copyReleaseJniLibsProjectOnly
+> Task :react-native-google-signin_google-signin:mergeReleaseJniLibFolders
+> Task :react-native-google-signin_google-signin:mergeReleaseNativeLibs NO-SOURCE
+> Task :react-native-google-signin_google-signin:copyReleaseJniLibsProjectOnly
+> Task :react-native-sqlite-storage:mergeReleaseJniLibFolders
+> Task :react-native-sqlite-storage:mergeReleaseNativeLibs NO-SOURCE
+> Task :react-native-sqlite-storage:copyReleaseJniLibsProjectOnly
+> Task :react-native-svg:mergeReleaseJniLibFolders
+> Task :react-native-svg:mergeReleaseNativeLibs NO-SOURCE
+> Task :react-native-svg:copyReleaseJniLibsProjectOnly
+> Task :react-native-version-check:mergeReleaseJniLibFolders
+> Task :react-native-version-check:mergeReleaseNativeLibs NO-SOURCE
+> Task :react-native-version-check:copyReleaseJniLibsProjectOnly
+> Task :app:writeReleaseAppMetadata
+> Task :react-native-async-storage_async-storage:prepareReleaseArtProfile
+> Task :react-native-device-info:prepareReleaseArtProfile
+> Task :react-native-firebase_app:prepareReleaseArtProfile
+> Task :react-native-firebase_auth:prepareReleaseArtProfile
+> Task :react-native-firebase_firestore:prepareReleaseArtProfile
+> Task :react-native-fs:prepareReleaseArtProfile
+> Task :react-native-google-mobile-ads:prepareReleaseArtProfile
+> Task :react-native-google-signin_google-signin:prepareReleaseArtProfile
+> Task :react-native-sqlite-storage:prepareReleaseArtProfile
+> Task :react-native-svg:prepareReleaseArtProfile
+> Task :react-native-version-check:prepareReleaseArtProfile
+> Task :app:mergeReleaseArtProfile
+> Task :app:collectReleaseDependencies
+> Task :app:configureReleaseDependencies
+> Task :app:extractProguardFiles
+> Task :react-native-async-storage_async-storage:createFullJarRelease
+> Task :react-native-async-storage_async-storage:extractProguardFiles
+> Task :app:compileReleaseArtProfile
+> Task :app:mergeReleaseNativeLibs
+> Task :react-native-async-storage_async-storage:generateReleaseLintModel
+> Task :react-native-device-info:createFullJarRelease
+> Task :react-native-device-info:extractProguardFiles
+> Task :react-native-device-info:generateReleaseLintModel
+> Task :react-native-firebase_app:createFullJarRelease
+> Task :react-native-async-storage_async-storage:prepareLintJarForPublish
+> Task :react-native-device-info:prepareLintJarForPublish
+> Task :react-native-firebase_app:extractProguardFiles
+> Task :react-native-firebase_app:generateReleaseLintModel
+> Task :react-native-firebase_app:prepareLintJarForPublish
+> Task :app:stripReleaseDebugSymbols
+> Task :react-native-firebase_auth:createFullJarRelease
+> Task :app:buildReleasePreBundle
+> Task :react-native-firebase_auth:extractProguardFiles
+> Task :react-native-firebase_auth:generateReleaseLintModel
+> Task :react-native-firebase_auth:prepareLintJarForPublish
+> Task :react-native-firebase_firestore:createFullJarRelease
+> Task :react-native-firebase_firestore:extractProguardFiles
+> Task :app:extractReleaseNativeSymbolTables
+> Task :react-native-firebase_firestore:generateReleaseLintModel
+> Task :react-native-firebase_firestore:prepareLintJarForPublish
+> Task :react-native-fs:createFullJarRelease
+> Task :react-native-fs:extractProguardFiles
+> Task :react-native-fs:generateReleaseLintModel
+> Task :react-native-fs:prepareLintJarForPublish
+> Task :react-native-google-mobile-ads:createFullJarRelease
+> Task :react-native-google-mobile-ads:extractProguardFiles
+> Task :react-native-google-mobile-ads:generateReleaseLintModel
+> Task :react-native-google-mobile-ads:prepareLintJarForPublish
+> Task :react-native-google-signin_google-signin:createFullJarRelease
+> Task :react-native-google-signin_google-signin:extractProguardFiles
+> Task :react-native-google-signin_google-signin:generateReleaseLintModel
+> Task :react-native-google-signin_google-signin:prepareLintJarForPublish
+> Task :react-native-sqlite-storage:createFullJarRelease
+> Task :react-native-sqlite-storage:extractProguardFiles
+> Task :react-native-sqlite-storage:generateReleaseLintModel
+> Task :react-native-sqlite-storage:prepareLintJarForPublish
+> Task :react-native-svg:createFullJarRelease
+> Task :react-native-svg:extractProguardFiles
+> Task :react-native-svg:generateReleaseLintModel
+> Task :react-native-svg:prepareLintJarForPublish
+> Task :react-native-version-check:createFullJarRelease
+> Task :react-native-version-check:extractProguardFiles
+> Task :react-native-version-check:generateReleaseLintModel
+> Task :react-native-version-check:prepareLintJarForPublish
+> Task :react-native-google-signin_google-signin:stripReleaseDebugSymbols NO-SOURCE
+> Task :app:generateReleaseLintVitalReportModel
+> Task :react-native-google-signin_google-signin:copyReleaseJniLibsProjectAndLocalJars
+> Task :react-native-google-signin_google-signin:extractDeepLinksForAarRelease
+> Task :react-native-google-signin_google-signin:extractReleaseAnnotations
+> Task :react-native-google-signin_google-signin:mergeReleaseGeneratedProguardFiles
+> Task :react-native-google-signin_google-signin:mergeReleaseConsumerProguardFiles
+> Task :react-native-google-mobile-ads:stripReleaseDebugSymbols NO-SOURCE
+> Task :react-native-google-mobile-ads:copyReleaseJniLibsProjectAndLocalJars
+> Task :react-native-google-mobile-ads:extractDeepLinksForAarRelease
+> Task :react-native-google-signin_google-signin:mergeReleaseJavaResource
+> Task :react-native-google-mobile-ads:extractReleaseAnnotations
+> Task :react-native-google-signin_google-signin:syncReleaseLibJars
+> Task :react-native-google-signin_google-signin:bundleReleaseLocalLintAar
+> Task :react-native-google-mobile-ads:mergeReleaseGeneratedProguardFiles
+> Task :react-native-google-mobile-ads:mergeReleaseConsumerProguardFiles
+> Task :react-native-async-storage_async-storage:stripReleaseDebugSymbols NO-SOURCE
+> Task :react-native-async-storage_async-storage:copyReleaseJniLibsProjectAndLocalJars
+> Task :react-native-async-storage_async-storage:extractDeepLinksForAarRelease
+> Task :react-native-async-storage_async-storage:extractReleaseAnnotations
+> Task :react-native-async-storage_async-storage:mergeReleaseGeneratedProguardFiles
+> Task :react-native-async-storage_async-storage:mergeReleaseConsumerProguardFiles
+> Task :react-native-google-mobile-ads:mergeReleaseJavaResource
+> Task :react-native-async-storage_async-storage:mergeReleaseJavaResource
+> Task :react-native-google-mobile-ads:syncReleaseLibJars
+> Task :react-native-google-mobile-ads:bundleReleaseLocalLintAar
+> Task :react-native-async-storage_async-storage:syncReleaseLibJars
+> Task :react-native-async-storage_async-storage:bundleReleaseLocalLintAar
+> Task :react-native-firebase_auth:stripReleaseDebugSymbols NO-SOURCE
+> Task :react-native-firebase_auth:copyReleaseJniLibsProjectAndLocalJars
+> Task :react-native-firebase_auth:extractDeepLinksForAarRelease
+> Task :react-native-firebase_auth:extractReleaseAnnotations
+> Task :react-native-firebase_auth:mergeReleaseGeneratedProguardFiles
+> Task :react-native-firebase_auth:mergeReleaseConsumerProguardFiles
+> Task :react-native-firebase_firestore:stripReleaseDebugSymbols NO-SOURCE
+> Task :react-native-firebase_firestore:copyReleaseJniLibsProjectAndLocalJars
+> Task :react-native-firebase_auth:mergeReleaseJavaResource
+> Task :react-native-firebase_firestore:extractDeepLinksForAarRelease
+> Task :react-native-firebase_auth:syncReleaseLibJars
+> Task :react-native-firebase_auth:bundleReleaseLocalLintAar
+> Task :react-native-firebase_firestore:extractReleaseAnnotations
+> Task :react-native-firebase_firestore:mergeReleaseGeneratedProguardFiles
+> Task :react-native-firebase_firestore:mergeReleaseConsumerProguardFiles
+> Task :react-native-firebase_app:stripReleaseDebugSymbols NO-SOURCE
+> Task :react-native-firebase_app:copyReleaseJniLibsProjectAndLocalJars
+> Task :react-native-firebase_firestore:mergeReleaseJavaResource
+> Task :react-native-firebase_app:extractDeepLinksForAarRelease
+> Task :react-native-firebase_firestore:syncReleaseLibJars
+> Task :react-native-firebase_firestore:bundleReleaseLocalLintAar
+> Task :react-native-firebase_app:extractReleaseAnnotations
+> Task :react-native-firebase_app:mergeReleaseGeneratedProguardFiles
+> Task :react-native-firebase_app:mergeReleaseConsumerProguardFiles
+> Task :react-native-device-info:stripReleaseDebugSymbols NO-SOURCE
+> Task :react-native-device-info:copyReleaseJniLibsProjectAndLocalJars
+> Task :react-native-firebase_app:mergeReleaseJavaResource
+> Task :react-native-device-info:extractDeepLinksForAarRelease
+> Task :react-native-firebase_app:syncReleaseLibJars
+> Task :react-native-firebase_app:bundleReleaseLocalLintAar
+> Task :react-native-device-info:extractReleaseAnnotations
+> Task :react-native-device-info:mergeReleaseGeneratedProguardFiles
+> Task :react-native-device-info:mergeReleaseConsumerProguardFiles
+> Task :react-native-fs:stripReleaseDebugSymbols NO-SOURCE
+> Task :react-native-fs:copyReleaseJniLibsProjectAndLocalJars
+> Task :react-native-device-info:mergeReleaseJavaResource
+> Task :react-native-fs:extractDeepLinksForAarRelease
+> Task :react-native-device-info:syncReleaseLibJars
+> Task :react-native-device-info:bundleReleaseLocalLintAar
+> Task :react-native-fs:extractReleaseAnnotations
+> Task :react-native-fs:mergeReleaseGeneratedProguardFiles
+> Task :react-native-fs:mergeReleaseConsumerProguardFiles
+> Task :react-native-sqlite-storage:stripReleaseDebugSymbols NO-SOURCE
+> Task :react-native-sqlite-storage:copyReleaseJniLibsProjectAndLocalJars
+> Task :react-native-fs:mergeReleaseJavaResource
+> Task :react-native-sqlite-storage:extractDeepLinksForAarRelease
+> Task :react-native-fs:syncReleaseLibJars
+> Task :react-native-fs:bundleReleaseLocalLintAar
+> Task :react-native-sqlite-storage:extractReleaseAnnotations
+> Task :react-native-sqlite-storage:mergeReleaseGeneratedProguardFiles
+> Task :react-native-sqlite-storage:mergeReleaseConsumerProguardFiles
+> Task :react-native-svg:stripReleaseDebugSymbols NO-SOURCE
+> Task :react-native-svg:copyReleaseJniLibsProjectAndLocalJars
+> Task :react-native-sqlite-storage:mergeReleaseJavaResource
+> Task :react-native-svg:extractDeepLinksForAarRelease
+> Task :react-native-sqlite-storage:syncReleaseLibJars
+> Task :react-native-sqlite-storage:bundleReleaseLocalLintAar
+> Task :react-native-svg:extractReleaseAnnotations
+> Task :react-native-svg:mergeReleaseGeneratedProguardFiles
+> Task :react-native-svg:mergeReleaseConsumerProguardFiles
+> Task :react-native-version-check:stripReleaseDebugSymbols NO-SOURCE
+> Task :react-native-version-check:copyReleaseJniLibsProjectAndLocalJars
+> Task :react-native-svg:mergeReleaseJavaResource
+> Task :react-native-version-check:extractDeepLinksForAarRelease
+> Task :react-native-svg:syncReleaseLibJars
+> Task :react-native-svg:bundleReleaseLocalLintAar
+> Task :react-native-version-check:extractReleaseAnnotations
+> Task :react-native-version-check:mergeReleaseGeneratedProguardFiles
+> Task :react-native-version-check:mergeReleaseConsumerProguardFiles
+> Task :react-native-version-check:mergeReleaseJavaResource
+> Task :react-native-version-check:syncReleaseLibJars
+> Task :react-native-version-check:bundleReleaseLocalLintAar
+> Task :react-native-async-storage_async-storage:writeReleaseLintModelMetadata
+> Task :react-native-device-info:writeReleaseLintModelMetadata
+> Task :react-native-firebase_app:writeReleaseLintModelMetadata
+> Task :react-native-firebase_auth:writeReleaseLintModelMetadata
+> Task :react-native-firebase_firestore:writeReleaseLintModelMetadata
+> Task :react-native-fs:writeReleaseLintModelMetadata
+> Task :react-native-google-mobile-ads:writeReleaseLintModelMetadata
+> Task :react-native-google-signin_google-signin:writeReleaseLintModelMetadata
+> Task :react-native-sqlite-storage:writeReleaseLintModelMetadata
+> Task :react-native-svg:writeReleaseLintModelMetadata
+> Task :react-native-version-check:writeReleaseLintModelMetadata
+> Task :react-native-async-storage_async-storage:generateReleaseLintVitalModel
+> Task :react-native-device-info:generateReleaseLintVitalModel
+> Task :react-native-firebase_app:generateReleaseLintVitalModel
+> Task :react-native-firebase_auth:generateReleaseLintVitalModel
+> Task :react-native-firebase_firestore:generateReleaseLintVitalModel
+> Task :react-native-fs:generateReleaseLintVitalModel
+> Task :react-native-google-mobile-ads:generateReleaseLintVitalModel
+> Task :react-native-google-signin_google-signin:generateReleaseLintVitalModel
+> Task :react-native-sqlite-storage:generateReleaseLintVitalModel
+> Task :react-native-svg:generateReleaseLintVitalModel
+> Task :react-native-version-check:generateReleaseLintVitalModel
+> Task :app:validateSigningRelease
+> Task :app:parseReleaseIntegrityConfig
+> Task :react-native-firebase_app:lintVitalAnalyzeRelease
+> Task :react-native-firebase_auth:lintVitalAnalyzeRelease
+> Task :react-native-firebase_firestore:lintVitalAnalyzeRelease
+> Task :react-native-device-info:lintVitalAnalyzeRelease
+> Task :react-native-async-storage_async-storage:lintVitalAnalyzeRelease
+> Task :react-native-fs:lintVitalAnalyzeRelease
+> Task :react-native-sqlite-storage:lintVitalAnalyzeRelease
+> Task :react-native-svg:lintVitalAnalyzeRelease
+> Task :react-native-version-check:lintVitalAnalyzeRelease
+> Task :react-native-google-signin_google-signin:lintVitalAnalyzeRelease
+> Task :react-native-google-mobile-ads:lintVitalAnalyzeRelease
+> Task :app:lintVitalAnalyzeRelease
+> Task :app:lintVitalReportRelease
+> Task :app:lintVitalRelease
+> Task :app:packageReleaseBundle
+> Task :app:signReleaseBundle
+> Task :app:produceReleaseBundleIdeListingFile
+> Task :app:createReleaseBundleListingFileRedirect
+> Task :app:bundleRelease
+
+[Incubating] Problems report is available at: file:///D:/android/Projects/DailySudoku/daily-sudoku2/android/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.14.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 1m 39s
+473 actionable tasks: 463 executed, 10 up-to-date

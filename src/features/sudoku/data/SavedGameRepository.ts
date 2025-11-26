@@ -38,6 +38,7 @@ export type SavedGameSnapshot = {
   noteMode: boolean;
   padSelectMode: boolean;
   selectedPad: number | null;
+  hintsUsed: number;
   savedAt?: number;
 };
 
@@ -55,6 +56,7 @@ export async function saveSavedGameSnapshot(snapshot: SavedGameSnapshot) {
     note_mode: snapshot.noteMode ? 1 : 0,
     pad_select_mode: snapshot.padSelectMode ? 1 : 0,
     selected_pad: snapshot.selectedPad ?? null,
+    hints_used: snapshot.hintsUsed ?? 0,
     saved_at: Date.now(),
   });
   await AsyncStorage.setItem(STORAGE_KEY, payload);
@@ -76,6 +78,7 @@ export async function loadSavedGameSnapshot(): Promise<SavedGameSnapshot | null>
     note_mode: number;
     pad_select_mode: number;
     selected_pad: number | null;
+    hints_used: number;
     saved_at: number;
   };
   return {
@@ -91,6 +94,7 @@ export async function loadSavedGameSnapshot(): Promise<SavedGameSnapshot | null>
     noteMode: !!row.note_mode,
     padSelectMode: !!row.pad_select_mode,
     selectedPad: row.selected_pad ?? null,
+    hintsUsed: Number(row.hints_used) || 0,
     savedAt: row.saved_at,
   };
 }

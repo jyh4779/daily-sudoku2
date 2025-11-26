@@ -6,7 +6,7 @@ import EraserIcon from '../../../assets/icons/eraser.svg';
 import UndoIcon from '../../../assets/icons/undo.svg';
 import { useTexts } from '../../../config/texts';
 
-type Action = 'undo' | 'erase' | 'note' | 'hint' | 'padmode';
+type Action = 'undo' | 'erase' | 'note' | 'hint' | 'ai_hint' | 'padmode';
 
 type BtnProps = {
   action: Action;
@@ -52,6 +52,27 @@ function HintIcon() {
   );
 }
 
+function AiHintIcon() {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path
+        d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
+        fill="#e0e7ff"
+        stroke={COLORS.primary}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M12 17.77V2"
+        stroke={COLORS.primary}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+}
+
 function Icon({ action, active }: { action: Action; active?: boolean }) {
   switch (action) {
     case 'undo':
@@ -62,6 +83,8 @@ function Icon({ action, active }: { action: Action; active?: boolean }) {
       return <NoteIcon active={active} />;
     case 'hint':
       return <HintIcon />;
+    case 'ai_hint':
+      return <AiHintIcon />;
     case 'padmode':
       return (
         <Svg width={size} height={size} viewBox="0 0 24 24">
@@ -105,6 +128,8 @@ export default function ActionButtons() {
   const eraseSelected = useSudokuStore(s => s.eraseSelected);
   const padSelectMode = useSudokuStore(s => s.padSelectMode ?? false);
   const togglePadSelectMode = useSudokuStore(s => s.togglePadSelectMode ?? (() => { }));
+  const useHint = useSudokuStore(s => s.useHint);
+  const requestAiHint = useSudokuStore(s => s.requestAiHint);
 
   const onUndo = () => {
     if (undo) undo();
@@ -115,7 +140,11 @@ export default function ActionButtons() {
   };
 
   const onNote = () => toggleNoteMode();
-  const onHint = () => console.warn('TODO: hint');
+  const onHint = () => useHint();
+  const onAiHint = () => {
+    console.log('ActionButtons: onAiHint pressed');
+    requestAiHint();
+  };
   const onPadMode = () => togglePadSelectMode();
 
   return (
@@ -123,6 +152,7 @@ export default function ActionButtons() {
       <ActionButton action="undo" label={texts.game.actions.undo} onPress={onUndo} />
       <ActionButton action="erase" label={texts.game.actions.erase} onPress={onErase} />
       <ActionButton action="hint" label={texts.game.actions.hint} onPress={onHint} />
+      {/* <ActionButton action="ai_hint" label="AI Hint" onPress={onAiHint} /> */}
       <ActionButton action="note" label={texts.game.actions.note} onPress={onNote} active={noteMode} />
       <ActionButton action="padmode" label={texts.game.actions.padMode} onPress={onPadMode} active={padSelectMode} />
     </View>

@@ -1,0 +1,1 @@
+export const GEMINI_API_KEY = 'AIzaSyAI_LPYBd6oJNm_JVfoXRjv7NqnmXcqoWc'; // TODO: Enter your Gemini API Key here

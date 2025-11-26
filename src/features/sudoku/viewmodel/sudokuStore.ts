@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { getRandomPairByDifficulty, Pair } from '../data/PuzzleRepositorySqlite';
+import { AiHintResponse, fetchAiHint } from '../data/AiHintRepository';
 import { log, warn } from '../../../core/logger/log';
 import { appendFileLog } from '../../../core/logger/fileLogger';
 import { clearSavedGameSnapshot, loadSavedGameSnapshot, saveSavedGameSnapshot } from '../data/SavedGameRepository';
@@ -29,6 +30,8 @@ type SudokuState = {
   mistakeLimit: number;
   undoStack: UndoItem[]; // max depth 3
   elapsedSec: number;
+  hintsUsed: number;
+  maxHints: number;
   hasLoadedGame: boolean;
 
   setSelected: (rc: RC | null) => void;
@@ -41,6 +44,7 @@ type SudokuState = {
   toggleNoteAtSelected: (n: number) => void;
   clearNotesAt: (r: number, c: number) => void;
   eraseSelected: () => void;
+  useHint: () => void;
   undo: () => void;
   // game control
   resetMistakes: () => void;
@@ -61,6 +65,13 @@ type SudokuState = {
   tutorialHighlights: RC[] | null;
   setTutorialHighlights: (highlights: RC[] | null) => void;
   loadTutorialPuzzle: (puzzle: number[][], solution: number[][]) => void;
+
+  // AI Hint
+  aiHintLoading: boolean;
+  aiHintResult: AiHintResponse | null;
+  aiHintError: string | null;
+  requestAiHint: () => Promise<void>;
+  clearAiHint: () => void;
 };
 
 export const useSudokuStore = create<SudokuState>((set, get) => ({
@@ -75,6 +86,8 @@ export const useSudokuStore = create<SudokuState>((set, get) => ({
   mistakeLimit: 3,
   undoStack: [],
   elapsedSec: 0,
+  hintsUsed: 0,
+  maxHints: 2,
   hasLoadedGame: false,
   noteMode: false,
   toggleNoteMode: () => set(s => ({ noteMode: !s.noteMode })),
@@ -85,6 +98,35 @@ export const useSudokuStore = create<SudokuState>((set, get) => ({
 
   tutorialHighlights: null,
   setTutorialHighlights: (highlights) => set({ tutorialHighlights: highlights }),
+
+  // AI Hint
+  aiHintLoading: false,
+  aiHintResult: null,
+  aiHintError: null,
+  requestAiHint: async () => {
+    console.log('sudokuStore: requestAiHint called');
+    const { values, aiHintLoading } = get();
+    console.log('sudokuStore: loading state:', aiHintLoading);
+    if (aiHintLoading) {
+      console.log('sudokuStore: already loading, aborting');
+      return;
+    }
+
+    set({ aiHintLoading: true, aiHintError: null, aiHintResult: null });
+    try {
+      console.log('sudokuStore: calling fetchAiHint');
+      const result = await fetchAiHint(values);
+      console.log('sudokuStore: fetchAiHint success', result);
+      set({ aiHintResult: result });
+    } catch (e) {
+      console.error('sudokuStore: fetchAiHint failed', e);
+      set({ aiHintError: String(e) });
+    } finally {
+      set({ aiHintLoading: false });
+    }
+  },
+  clearAiHint: () => set({ aiHintResult: null, aiHintError: null }),
+
   loadTutorialPuzzle: (puzzle, solution) => {
     const vals = clone9(puzzle);
     set({
@@ -98,6 +140,7 @@ export const useSudokuStore = create<SudokuState>((set, get) => ({
       mistakes: 0,
       undoStack: [],
       elapsedSec: 0,
+      hintsUsed: 0,
       hasLoadedGame: false,
       noteMode: false,
       padSelectMode: false,
@@ -225,6 +268,83 @@ export const useSudokuStore = create<SudokuState>((set, get) => ({
     });
   },
 
+  useHint: () => {
+    const { values, puzzle, solution, hintsUsed, maxHints } = get();
+    if (hintsUsed >= maxHints) return;
+
+    // Find all empty cells
+    const emptyCells: RC[] = [];
+    for (let r = 0; r < 9; r++) {
+      for (let c = 0; c < 9; c++) {
+        if (values[r][c] === 0) {
+          emptyCells.push({ r, c });
+        }
+      }
+    }
+
+    if (emptyCells.length === 0) return;
+
+    // Pick random empty cell
+    const idx = Math.floor(Math.random() * emptyCells.length);
+    const { r, c } = emptyCells[idx];
+    const val = solution[r][c];
+
+    // Reuse inputNumber logic to handle notes updates properly, but we need to bypass some checks
+    // So we'll implement the update logic directly here similar to inputNumber
+    set(state => {
+      const next = state.values.map(row => row.slice());
+      next[r][c] = val;
+      const notes = state.notes.map(row => row.slice());
+      const prevNotes = notes[r][c] | 0;
+      notes[r][c] = 0; // clear notes in target cell
+
+      const bit = 1 << val;
+      const patches: NotePatch[] = [];
+
+      // Helper to clear notes in peers
+      const clearPeerNotes = (rr: number, cc: number) => {
+        if (puzzle[rr][cc] === 0 && next[rr][cc] === 0) {
+          const before = notes[rr][cc] | 0;
+          const after = before & ~bit;
+          if (after !== before) {
+            notes[rr][cc] = after;
+            patches.push({ r: rr, c: cc, prevNotes: before, nextNotes: after });
+          }
+        }
+      };
+
+      // Row
+      for (let cc = 0; cc < 9; cc++) {
+        if (cc !== c) clearPeerNotes(r, cc);
+      }
+      // Col
+      for (let rr = 0; rr < 9; rr++) {
+        if (rr !== r) clearPeerNotes(rr, c);
+      }
+      // Box
+      const br = Math.floor(r / 3) * 3;
+      const bc = Math.floor(c / 3) * 3;
+      for (let rr = br; rr < br + 3; rr++) {
+        for (let cc = bc; cc < bc + 3; cc++) {
+          if (rr !== r || cc !== c) clearPeerNotes(rr, cc);
+        }
+      }
+
+      const stack = state.undoStack.slice();
+      // We don't push to undo stack for hints? Or maybe we should? 
+      // User request didn't specify, but usually hints are not undoable or if they are, you get the hint back.
+      // For now let's NOT push to undo stack to keep it simple and avoid "undoing" a paid/limited resource easily without complex logic.
+
+      return {
+        values: next,
+        grid: next,
+        notes,
+        hintsUsed: state.hintsUsed + 1,
+        selected: { r, c }, // Select the revealed cell
+      };
+    });
+  },
+
   undo: () => {
     const { undoStack } = get();
     if (!undoStack.length) return;
@@ -261,6 +381,7 @@ export const useSudokuStore = create<SudokuState>((set, get) => ({
         mistakes: 0,
         undoStack: [],
         elapsedSec: 0,
+        hintsUsed: 0,
         noteMode: false,
         padSelectMode: false,
         selectedPad: null,
@@ -283,6 +404,7 @@ export const useSudokuStore = create<SudokuState>((set, get) => ({
         mistakes: 0,
         undoStack: [],
         elapsedSec: 0,
+        hintsUsed: 0,
         hasLoadedGame: true,
         noteMode: false,
         padSelectMode: false,
@@ -310,6 +432,7 @@ export const useSudokuStore = create<SudokuState>((set, get) => ({
         selected: null,
         undoStack: [],
         elapsedSec: 0,
+        hintsUsed: 0,
         hasLoadedGame: false,
         noteMode: false,
         padSelectMode: false,
@@ -341,6 +464,7 @@ export const useSudokuStore = create<SudokuState>((set, get) => ({
         mistakeLimit: snapshot.mistakeLimit ?? 3,
         undoStack: Array.isArray(snapshot.undoStack) ? snapshot.undoStack : [],
         elapsedSec: snapshot.elapsedSec ?? 0,
+        hintsUsed: snapshot.hintsUsed ?? 0,
         noteMode: snapshot.noteMode ?? false,
         padSelectMode: snapshot.padSelectMode ?? false,
         selectedPad: snapshot.selectedPad ?? null,
@@ -375,6 +499,7 @@ const toSnapshot = (state: SudokuState) => ({
   mistakeLimit: state.mistakeLimit,
   difficulty: state.difficulty,
   elapsedSec: state.elapsedSec,
+  hintsUsed: state.hintsUsed,
   noteMode: !!state.noteMode,
   padSelectMode: !!state.padSelectMode,
   selectedPad: state.selectedPad ?? null,

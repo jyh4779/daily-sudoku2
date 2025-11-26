@@ -1,8 +1,7 @@
 import React from 'react';
 import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Platform, BackHandler, Alert } from 'react-native';
-import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
 import { useTexts } from '../../config/texts';
-import { ADMOB_IDS, BANNER_RESERVED_SPACE } from '../../config/admob';
+import { ADMOB_IDS } from '../../config/admob';
 
 type HomeScreenProps = {
   onPressNewGame?: (difficulty: string) => void;
@@ -56,14 +55,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   const buttons = [
     { label: texts.home.newGame, icon: '+', color: '#f4b2cf', onPress: () => setShowDifficultyModal(true), disabled: false },
     { label: texts.home.continue, icon: '▶', color: '#b8e6ff', onPress: onPressContinue, disabled: !continueAvailable },
-    { label: texts.home.stats, icon: '≣', color: '#d7cdfd', onPress: onPressStats, disabled: false },
     { label: texts.home.settings, icon: '⚙', color: '#ffd8ad', onPress: onPressSettings, disabled: false },
   ];
-  const bannerUnitId =
-    Platform.select({
-      android: ADMOB_IDS.android.banner,
-      ios: ADMOB_IDS.ios.banner,
-    }) ?? ADMOB_IDS.android.banner;
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -100,13 +93,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
 
           <View style={styles.bottomSection} />
         </View>
-      </View>
-      <View style={styles.bannerArea}>
-        <BannerAd
-          unitId={bannerUnitId}
-          size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
-          requestOptions={{ requestNonPersonalizedAdsOnly: true }}
-        />
       </View>
 
       {showDifficultyModal && (
@@ -145,7 +131,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
 export default HomeScreen;
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#f9fbfc' },
+  safe: { flex: 1, backgroundColor: '#f9fbfc', paddingBottom: 140 },
   background: {
     flex: 1,
     position: 'relative',
@@ -164,7 +150,6 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     width: '100%',
-    paddingBottom: BANNER_RESERVED_SPACE,
   },
   topSection: {
     flex: 1,
@@ -218,11 +203,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#222327',
-  },
-  bannerArea: {
-    height: BANNER_RESERVED_SPACE,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   modalOverlay: {
     position: 'absolute',
