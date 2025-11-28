@@ -40,13 +40,11 @@ export default function Board({ size }: Props) {
   // 선 두께 정의
   const THIN = StyleSheet.hairlineWidth;       // 얇은 선
   const THICK = 2;                               // 굵은 선
-  // 보드 전체에 존재하는 수직/수평 선의 총 두께 (0..9까지 10개 선: 0/3/6/9는 굵게)
-  const LINES_SUM = (THICK * 4) + (THIN * 6);
 
   // 선 두께를 먼저 제외하고 셀 크기 산출 → 오차/이중선 제거
-  const cell = Math.floor((size - LINES_SUM) / N);
-  // 실 보드 픽셀 (셀*N + 선 두께 합)
-  const boardSide = cell * N + LINES_SUM;
+  const cell = Math.floor(size / N);
+  // 실 보드 픽셀 (셀*N)
+  const boardSide = cell * N;
 
   return (
     <View style={[styles.board, { width: boardSide, height: boardSide }]}>
@@ -71,7 +69,7 @@ export default function Board({ size }: Props) {
             );
 
             // Tutorial highlight
-            const isTutorialHighlight = tutorialHighlights?.some(h => h.r === r && h.c === c);
+            const isTutorialHighlight = tutorialHighlights?.some((h: { r: number; c: number }) => h.r === r && h.c === c);
 
             // 각 셀은 "왼쪽/위쪽" 선만 그립니다. (마지막 행/열에서만 바깥쪽을 닫음)
             const cellBorder: StyleProp<ViewStyle> = {
@@ -88,15 +86,20 @@ export default function Board({ size }: Props) {
               <Pressable
                 key={c}
                 onPress={() => {
-                  if (padSelectMode && selectedPad && puzzle[r][c] === 0) {
-                    if (v === 0) {
-                      setSel({ r, c });
-                      if (noteMode) {
-                        toggleNoteAtSelected && toggleNoteAtSelected(selectedPad);
-                      } else {
-                        inputNumber && inputNumber(selectedPad);
+                  if (padSelectMode) {
+                    // If no number selected in pad mode, ignore empty cells
+                    if (!selectedPad && v === 0) return;
+
+                    if (selectedPad && puzzle[r][c] === 0) {
+                      if (v === 0) {
+                        setSel({ r, c });
+                        if (noteMode) {
+                          toggleNoteAtSelected && toggleNoteAtSelected(selectedPad);
+                        } else {
+                          inputNumber && inputNumber(selectedPad);
+                        }
+                        return;
                       }
-                      return;
                     }
                   }
                   setSel({ r, c });
@@ -151,8 +154,8 @@ export default function Board({ size }: Props) {
 const styles = StyleSheet.create({
   board: {
     backgroundColor: '#fff',
-    borderWidth: 2,
-    borderColor: '#7aa8ff',
+    // borderWidth: 2, // Removed to prevent double border / alignment issues
+    // borderColor: '#7aa8ff',
   },
   row: { flexDirection: 'row' },
   cell: {

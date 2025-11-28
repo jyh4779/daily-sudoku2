@@ -23,6 +23,9 @@ export interface UserStats {
     winRate: number;
     bestWinStreak: number;
     currentWinStreak: number;
+    // Daily Challenge Specific Stats
+    dailyBestWinStreak: number;
+    dailyCurrentWinStreak: number;
     averageTimeSeconds: number;
     totalTimeSeconds: number;
     bestTimes: {
@@ -63,6 +66,8 @@ const DEFAULT_STATS: UserStats = {
     winRate: 0,
     bestWinStreak: 0,
     currentWinStreak: 0,
+    dailyBestWinStreak: 0,
+    dailyCurrentWinStreak: 0,
     averageTimeSeconds: 0,
     totalTimeSeconds: 0,
     bestTimes: {
@@ -119,17 +124,43 @@ export const updateUserNickname = async (userId: string, nickname: string) => {
     const db = getFirestore();
     const userStatsRef = doc(db, USER_STATS_COLLECTION, userId);
 
+    const now = new Date();
+    const dailyKey = getDailyKey(now);
+    const weeklyKey = getWeekNumber(now);
+
+    const dailyStatsRef = doc(db, LEADERBOARD_DAILY_COLLECTION, `${dailyKey}_${userId}`);
+    const weeklyStatsRef = doc(db, LEADERBOARD_WEEKLY_COLLECTION, `${weeklyKey}_${userId}`);
+    const dailyChallengeRef = doc(db, DAILY_CHALLENGE_LEADERBOARD_COLLECTION, `${dailyKey}_${userId}`);
+
     try {
         await runTransaction(db, async (transaction) => {
+            // 1. Update User Stats (All Time)
             const userStatsDoc = await transaction.get(userStatsRef);
             if (!userStatsDoc.exists()) {
-                // Should not happen for existing users, but handle it
                 const stats = JSON.parse(JSON.stringify(DEFAULT_STATS));
                 stats.userId = userId;
                 stats.displayName = nickname;
                 transaction.set(userStatsRef, stats);
             } else {
                 transaction.update(userStatsRef, { displayName: nickname });
+            }
+
+            // 2. Update Daily Leaderboard (if exists)
+            const dailyStatsDoc = await transaction.get(dailyStatsRef);
+            if (dailyStatsDoc.exists()) {
+                transaction.update(dailyStatsRef, { displayName: nickname });
+            }
+
+            // 3. Update Weekly Leaderboard (if exists)
+            const weeklyStatsDoc = await transaction.get(weeklyStatsRef);
+            if (weeklyStatsDoc.exists()) {
+                transaction.update(weeklyStatsRef, { displayName: nickname });
+            }
+
+            // 4. Update Daily Challenge Leaderboard (if exists)
+            const dailyChallengeDoc = await transaction.get(dailyChallengeRef);
+            if (dailyChallengeDoc.exists()) {
+                transaction.update(dailyChallengeRef, { displayName: nickname });
             }
         });
         await AppLogger.info('STATS', 'User nickname updated', { userId, nickname });
@@ -139,12 +170,14 @@ export const updateUserNickname = async (userId: string, nickname: string) => {
     }
 };
 
-const updateStatsObject = (stats: UserStats, gameResult: GameResult, userDisplayName?: string) => {
+const updateStatsObject = (stats: UserStats, gameResult: GameResult, userDisplayName?: string, isDailyChallenge: boolean = false) => {
     if (!stats.userId) stats.userId = gameResult.userId;
 
     // Migration/Init for new fields
     if (!stats.gamesPlayedCounts) stats.gamesPlayedCounts = { ...DEFAULT_STATS.gamesPlayedCounts };
     if (!stats.winRates) stats.winRates = { ...DEFAULT_STATS.winRates };
+    if (stats.dailyBestWinStreak === undefined) stats.dailyBestWinStreak = 0;
+    if (stats.dailyCurrentWinStreak === undefined) stats.dailyCurrentWinStreak = 0;
 
     // Nickname logic
     if (!stats.displayName) {
@@ -161,6 +194,15 @@ const updateStatsObject = (stats: UserStats, gameResult: GameResult, userDisplay
         if (stats.currentWinStreak > stats.bestWinStreak) {
             stats.bestWinStreak = stats.currentWinStreak;
         }
+
+        // Daily Challenge Specific Streak
+        if (isDailyChallenge) {
+            stats.dailyCurrentWinStreak += 1;
+            if (stats.dailyCurrentWinStreak > stats.dailyBestWinStreak) {
+                stats.dailyBestWinStreak = stats.dailyCurrentWinStreak;
+            }
+        }
+
         stats.completedCounts[gameResult.difficulty] += 1;
 
         const currentBest = stats.bestTimes[gameResult.difficulty];
@@ -170,6 +212,11 @@ const updateStatsObject = (stats: UserStats, gameResult: GameResult, userDisplay
     } else {
         stats.losses += 1;
         stats.currentWinStreak = 0;
+
+        // Daily Challenge Specific Streak Reset
+        if (isDailyChallenge) {
+            stats.dailyCurrentWinStreak = 0;
+        }
     }
 
     // Recalculate derived stats
@@ -234,16 +281,16 @@ export const saveGameResult = async (gameResult: GameResult, userDisplayName?: s
             const currentNickname = allTimeStats.displayName || userDisplayName || getRandomNickname();
 
             // Update All Time
-            allTimeStats = updateStatsObject(allTimeStats, gameResult, currentNickname);
+            allTimeStats = updateStatsObject(allTimeStats, gameResult, currentNickname, isDailyChallenge);
 
             // Update Daily
-            dailyStats = updateStatsObject(dailyStats, gameResult, currentNickname);
+            dailyStats = updateStatsObject(dailyStats, gameResult, currentNickname, isDailyChallenge);
             dailyStats.userId = gameResult.userId;
             dailyStats.displayName = currentNickname;
             (dailyStats as any).periodKey = dailyKey;
 
             // Update Weekly
-            weeklyStats = updateStatsObject(weeklyStats, gameResult, currentNickname);
+            weeklyStats = updateStatsObject(weeklyStats, gameResult, currentNickname, isDailyChallenge);
             weeklyStats.userId = gameResult.userId;
             weeklyStats.displayName = currentNickname;
             (weeklyStats as any).periodKey = weeklyKey;
@@ -255,11 +302,6 @@ export const saveGameResult = async (gameResult: GameResult, userDisplayName?: s
 
             // 6. Handle Daily Challenge Specifics
             if (isDailyChallenge && dailyChallengeRef) {
-                // For daily challenge, we just save the result to the leaderboard
-                // We don't aggregate stats like wins/losses in a separate stats doc, 
-                // we just store the best time for this user for this day.
-                // Or simply store this run.
-                // Let's store the best run for this user for this day.
                 const dailyChallengeDoc = await transaction.get(dailyChallengeRef);
 
                 if (!dailyChallengeDoc.exists()) {
@@ -274,7 +316,7 @@ export const saveGameResult = async (gameResult: GameResult, userDisplayName?: s
                 } else {
                     const currentData = dailyChallengeDoc.data();
                     // Update only if better time (lower duration)
-                    if (gameResult.durationSeconds < currentData.durationSeconds) {
+                    if (currentData && gameResult.durationSeconds < currentData.durationSeconds) {
                         transaction.update(dailyChallengeRef, {
                             durationSeconds: gameResult.durationSeconds,
                             mistakes: gameResult.mistakes,
@@ -341,22 +383,25 @@ export const getLeaderboard = async (
     }
 
     let q;
-    const constraints = [];
+    const constraints: any[] = [];
 
+    // For daily/weekly, we fetch by periodKey and sort client-side to avoid index issues
     if (period !== 'all_time') {
         constraints.push(where('periodKey', '==', periodKey));
+        // Fetch more than limit to allow for client-side filtering/sorting
+        constraints.push(firestoreLimit(100));
+    } else {
+        // All-time logic remains server-side sorted (assuming indexes exist or single field)
+        if (metric === 'bestTime') {
+            constraints.push(where(`bestTimes.${difficulty}`, '!=', null));
+            constraints.push(orderBy(`bestTimes.${difficulty}`, 'asc'));
+        } else if (metric === 'winRate') {
+            constraints.push(orderBy(`winRates.${difficulty}`, 'desc'));
+        } else { // wins
+            constraints.push(orderBy(`completedCounts.${difficulty}`, 'desc'));
+        }
+        constraints.push(firestoreLimit(limitCount));
     }
-
-    if (metric === 'bestTime') {
-        constraints.push(where(`bestTimes.${difficulty}`, '!=', null));
-        constraints.push(orderBy(`bestTimes.${difficulty}`, 'asc'));
-    } else if (metric === 'winRate') {
-        constraints.push(orderBy(`winRates.${difficulty}`, 'desc'));
-    } else { // wins
-        constraints.push(orderBy(`completedCounts.${difficulty}`, 'desc'));
-    }
-
-    constraints.push(firestoreLimit(limitCount));
 
     q = query(collection(db, collectionName), ...constraints);
 
@@ -364,7 +409,8 @@ export const getLeaderboard = async (
         console.log(`StatsRepository: Fetching leaderboard for ${metric} / ${difficulty} / ${period}`);
         const querySnapshot = await getDocs(q);
         console.log(`StatsRepository: Leaderboard fetched. Count: ${querySnapshot.size}`);
-        const leaderboard: UserStats[] = [];
+
+        let leaderboard: UserStats[] = [];
         querySnapshot.forEach((doc: any) => {
             const data = doc.data() as UserStats;
             // Ensure new fields exist
@@ -372,6 +418,36 @@ export const getLeaderboard = async (
             if (!data.winRates) data.winRates = { ...DEFAULT_STATS.winRates };
             leaderboard.push(data);
         });
+
+        // Client-side sorting for daily/weekly
+        if (period !== 'all_time') {
+            leaderboard = leaderboard.filter(item => {
+                if (metric === 'bestTime') {
+                    return item.bestTimes && item.bestTimes[difficulty] !== null && item.bestTimes[difficulty] !== undefined;
+                }
+                return true;
+            });
+
+            leaderboard.sort((a, b) => {
+                if (metric === 'bestTime') {
+                    const timeA = a.bestTimes[difficulty] ?? Number.MAX_VALUE;
+                    const timeB = b.bestTimes[difficulty] ?? Number.MAX_VALUE;
+                    return timeA - timeB;
+                } else if (metric === 'winRate') {
+                    const rateA = a.winRates?.[difficulty] ?? 0;
+                    const rateB = b.winRates?.[difficulty] ?? 0;
+                    return rateB - rateA;
+                } else { // wins
+                    const winsA = a.completedCounts?.[difficulty] ?? 0;
+                    const winsB = b.completedCounts?.[difficulty] ?? 0;
+                    return winsB - winsA;
+                }
+            });
+
+            // Apply limit after sorting
+            leaderboard = leaderboard.slice(0, limitCount);
+        }
+
         return leaderboard;
     } catch (error: any) {
         console.error('StatsRepository: Failed to fetch leaderboard', error);
@@ -392,12 +468,33 @@ export const getDailyChallengeLeaderboard = async (dateString: string, limitCoun
     try {
         const querySnapshot = await getDocs(q);
         const leaderboard: any[] = [];
-        querySnapshot.forEach((doc) => {
+        querySnapshot.forEach((doc: any) => {
             leaderboard.push(doc.data());
         });
         return leaderboard;
     } catch (error: any) {
         console.error('StatsRepository: Failed to fetch daily challenge leaderboard', error);
+        return [];
+    }
+};
+
+export const getStreakLeaderboard = async (limitCount: number = 20): Promise<UserStats[]> => {
+    const db = getFirestore();
+    const q = query(
+        collection(db, USER_STATS_COLLECTION),
+        orderBy('dailyBestWinStreak', 'desc'),
+        firestoreLimit(limitCount)
+    );
+
+    try {
+        const querySnapshot = await getDocs(q);
+        const leaderboard: UserStats[] = [];
+        querySnapshot.forEach((doc: any) => {
+            leaderboard.push(doc.data() as UserStats);
+        });
+        return leaderboard;
+    } catch (error: any) {
+        console.error('StatsRepository: Failed to fetch streak leaderboard', error);
         return [];
     }
 };
@@ -417,7 +514,7 @@ export const getDailyStreak = async (userId: string): Promise<number> => {
         const snapshot = await getDocs(q);
         if (snapshot.empty) return 0;
 
-        const dates = snapshot.docs.map(d => {
+        const dates = snapshot.docs.map((d: any) => {
             const data = d.data();
             return data.dailyKey; // YYYY-MM-DD
         });
@@ -434,10 +531,10 @@ export const getDailyStreak = async (userId: string): Promise<number> => {
         }
 
         let streak = 1;
-        let currentDate = new Date(uniqueDates[0]);
+        let currentDate = new Date(uniqueDates[0] as string);
 
         for (let i = 1; i < uniqueDates.length; i++) {
-            const prevDate = new Date(uniqueDates[i]);
+            const prevDate = new Date(uniqueDates[i] as string);
             const diffTime = Math.abs(currentDate.getTime() - prevDate.getTime());
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
@@ -453,5 +550,215 @@ export const getDailyStreak = async (userId: string): Promise<number> => {
     } catch (error) {
         console.error('StatsRepository: Failed to calculate streak', error);
         return 0;
+    }
+};
+
+export const ensureDailyStats = async (userId: string, currentStreak: number) => {
+    const db = getFirestore();
+    const userStatsRef = doc(db, USER_STATS_COLLECTION, userId);
+
+    try {
+        await runTransaction(db, async (transaction) => {
+            const userStatsDoc = await transaction.get(userStatsRef);
+            if (!userStatsDoc.exists()) return;
+
+            const stats = userStatsDoc.data() as UserStats;
+            let changed = false;
+
+            if (stats.dailyCurrentWinStreak !== currentStreak) {
+                stats.dailyCurrentWinStreak = currentStreak;
+                changed = true;
+            }
+
+            if (stats.dailyBestWinStreak < currentStreak) {
+                stats.dailyBestWinStreak = currentStreak;
+                changed = true;
+            }
+
+            if (changed) {
+                transaction.update(userStatsRef, {
+                    dailyCurrentWinStreak: stats.dailyCurrentWinStreak,
+                    dailyBestWinStreak: stats.dailyBestWinStreak
+                });
+            }
+        });
+    } catch (error) {
+        console.error('StatsRepository: Failed to ensure daily stats', error);
+    }
+};
+
+export const cleanupInvalidGames = async (userId: string) => {
+    const db = getFirestore();
+    const gamesRef = collection(db, GAMES_COLLECTION);
+    const q = query(gamesRef, where('userId', '==', userId));
+
+    try {
+        console.log('StatsRepository: Starting cleanup for user', userId);
+        const snapshot = await getDocs(q);
+        const batch = db.batch();
+        let deletedCount = 0;
+        const validGames: GameResult[] = [];
+        const affectedDailyKeys = new Set<string>();
+        const affectedWeeklyKeys = new Set<string>();
+
+        snapshot.forEach((doc) => {
+            const data = doc.data() as any;
+            if (data.durationSeconds === 0) {
+                batch.delete(doc.ref);
+                deletedCount++;
+                if (data.dailyKey) affectedDailyKeys.add(data.dailyKey);
+                if (data.weeklyKey) affectedWeeklyKeys.add(data.weeklyKey);
+            } else {
+                validGames.push(data as GameResult);
+            }
+        });
+
+        if (deletedCount > 0) {
+            console.log(`StatsRepository: Deleting ${deletedCount} invalid games...`);
+            await batch.commit();
+        } else {
+            console.log('StatsRepository: No invalid games found to delete. Proceeding with recalculation...');
+        }
+
+        // Recalculate stats from scratch (ALWAYS run this to fix desync)
+        console.log('StatsRepository: Recalculating stats...');
+
+        // 1. Fetch current nickname
+        let currentNickname = getRandomNickname();
+        const userStatsRef = doc(db, USER_STATS_COLLECTION, userId);
+        const currentStatsDoc = await getDocs(query(collection(db, USER_STATS_COLLECTION), where('userId', '==', userId), firestoreLimit(1)));
+        if (!currentStatsDoc.empty) {
+            const currentData = currentStatsDoc.docs[0].data();
+            if (currentData.displayName) {
+                currentNickname = currentData.displayName;
+            }
+        }
+
+        // 2. Rebuild All Time Stats
+        let newAllTimeStats = JSON.parse(JSON.stringify(DEFAULT_STATS));
+        newAllTimeStats.userId = userId;
+        newAllTimeStats.displayName = currentNickname;
+
+        // Sort by time for streak calculation
+        validGames.sort((a, b) => a.startTime - b.startTime);
+
+        for (const game of validGames) {
+            const isDaily = (game as any).isDailyChallenge === true;
+            newAllTimeStats = updateStatsObject(newAllTimeStats, game, currentNickname, isDaily);
+        }
+
+        // 3. Rebuild Affected Daily Stats & Daily Challenge Leaderboard
+        const validDailyKeys = new Set<string>();
+        const validWeeklyKeys = new Set<string>();
+        validGames.forEach((g: any) => {
+            if (g.dailyKey) validDailyKeys.add(g.dailyKey);
+            if (g.weeklyKey) validWeeklyKeys.add(g.weeklyKey);
+        });
+
+        const allDailyKeys = new Set<string>([...affectedDailyKeys, ...validDailyKeys]);
+        const allWeeklyKeys = new Set<string>([...affectedWeeklyKeys, ...validWeeklyKeys]);
+
+        const dailyUpdates: Promise<void>[] = [];
+
+        for (const dailyKey of allDailyKeys) {
+            // Filter games for this day
+            const dailyGames = validGames.filter((g: any) => g.dailyKey === dailyKey);
+
+            const dailyStatsRef = doc(db, LEADERBOARD_DAILY_COLLECTION, `${dailyKey}_${userId}`);
+            const dailyChallengeRef = doc(db, DAILY_CHALLENGE_LEADERBOARD_COLLECTION, `${dailyKey}_${userId}`);
+
+            if (dailyGames.length === 0) {
+                // No valid games left for this day -> Delete stats
+                dailyUpdates.push(runTransaction(db, async (t) => {
+                    t.delete(dailyStatsRef);
+                    t.delete(dailyChallengeRef);
+                }));
+                continue;
+            }
+
+            // Rebuild Daily Stats
+            let newDailyStats = JSON.parse(JSON.stringify(DEFAULT_STATS));
+            newDailyStats.userId = userId;
+            newDailyStats.displayName = currentNickname;
+            newDailyStats.periodKey = dailyKey;
+
+            let bestDailyChallengeTime: number | null = null;
+            let bestDailyChallengeMistakes: number = 0;
+
+            for (const game of dailyGames) {
+                const isDaily = (game as any).isDailyChallenge === true;
+                newDailyStats = updateStatsObject(newDailyStats, game, currentNickname, isDaily);
+
+                if (isDaily && game.result === 'win') {
+                    if (bestDailyChallengeTime === null || game.durationSeconds < bestDailyChallengeTime) {
+                        bestDailyChallengeTime = game.durationSeconds;
+                        bestDailyChallengeMistakes = game.mistakes;
+                    }
+                }
+            }
+
+            // Update Daily Leaderboard Doc
+            dailyUpdates.push(runTransaction(db, async (t) => {
+                t.set(dailyStatsRef, newDailyStats);
+            }));
+
+            // Update Daily Challenge Leaderboard Doc
+            dailyUpdates.push(runTransaction(db, async (t) => {
+                if (bestDailyChallengeTime !== null) {
+                    t.set(dailyChallengeRef, {
+                        userId,
+                        displayName: currentNickname,
+                        durationSeconds: bestDailyChallengeTime,
+                        mistakes: bestDailyChallengeMistakes,
+                        completedAt: Timestamp.now(), // Approximate
+                        dailyKey,
+                    });
+                } else {
+                    // If no valid wins left for this day, delete the entry
+                    t.delete(dailyChallengeRef);
+                }
+            }));
+        }
+
+        // 4. Rebuild Affected Weekly Stats
+        const weeklyUpdates: Promise<void>[] = [];
+        for (const weeklyKey of allWeeklyKeys) {
+            const weeklyGames = validGames.filter((g: any) => g.weeklyKey === weeklyKey);
+            const weeklyStatsRef = doc(db, LEADERBOARD_WEEKLY_COLLECTION, `${weeklyKey}_${userId}`);
+
+            if (weeklyGames.length === 0) {
+                weeklyUpdates.push(runTransaction(db, async (t) => {
+                    t.delete(weeklyStatsRef);
+                }));
+                continue;
+            }
+
+            let newWeeklyStats = JSON.parse(JSON.stringify(DEFAULT_STATS));
+            newWeeklyStats.userId = userId;
+            newWeeklyStats.displayName = currentNickname;
+            newWeeklyStats.periodKey = weeklyKey;
+
+            for (const game of weeklyGames) {
+                const isDaily = (game as any).isDailyChallenge === true;
+                newWeeklyStats = updateStatsObject(newWeeklyStats, game, currentNickname, isDaily);
+            }
+
+            weeklyUpdates.push(runTransaction(db, async (t) => {
+                t.set(weeklyStatsRef, newWeeklyStats);
+            }));
+        }
+
+        // Execute all updates
+        await Promise.all([
+            runTransaction(db, async (t) => { t.set(userStatsRef, newAllTimeStats); }),
+            ...dailyUpdates,
+            ...weeklyUpdates
+        ]);
+
+        console.log('StatsRepository: Cleanup complete. Stats updated.');
+        return deletedCount;
+    } catch (error: any) {
+        console.error('StatsRepository: Cleanup failed', error);
+        throw error;
     }
 };

@@ -3723,6 +3723,7 @@ __metadata:
     react-native-device-info: "npm:^15.0.1"
     react-native-fs: "npm:^2.20.0"
     react-native-google-mobile-ads: "npm:^16.0.0"
+    react-native-sound: "npm:^0.13.0"
     react-native-sqlite-storage: "npm:^6.0.1"
     react-native-svg: "npm:^15.12.1"
     react-native-svg-transformer: "npm:^1.5.1"
@@ -9120,6 +9121,16 @@ __metadata:
     expo:
       optional: true
   checksum: 10c0/f672664805cd450e159a45277e64dc42af3578a71bf7271bfcd7d7513bd75bbf92af950c5d9e54c3c04e132c4629c58a69176bb95f9d83eb90367107065e8944
+  languageName: node
+  linkType: hard
+
+"react-native-sound@npm:^0.13.0":
+  version: 0.13.0
+  resolution: "react-native-sound@npm:0.13.0"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 10c0/c061e12bf505c3245c4c28438a1a6737121c3b65df36d32e920897c40393f3b8f52328fed9377f400b5d9ffc55052cbe4eaacba5586e2fa4108a01ba7a5a3e27
   languageName: node
   linkType: hard
 

@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { SafeAreaView, StatusBar, View, Image, StyleSheet, Alert, Text } from 'react-native';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
+import { SafeAreaView, StatusBar, View, Image, StyleSheet, Alert, Text, AppState } from 'react-native';
 import mobileAds from 'react-native-google-mobile-ads';
 import { GoogleSigninButton, statusCodes } from '@react-native-google-signin/google-signin';
 import AppLogger from './src/core/logger/AppLogger';
@@ -14,6 +14,7 @@ import { initGoogleSignin, signInWithGoogle, getCurrentUser, signInAnonymously, 
 import { saveGameResult } from './src/features/stats/data/StatsRepository';
 import { checkAppVersion } from './src/core/version/VersionCheckRepository';
 import { Linking } from 'react-native';
+import SoundManager from './src/core/audio/SoundManager';
 
 const splashArt = require('./src/assets/splash.png');
 
@@ -34,11 +35,30 @@ export default function App() {
   const [isDailyChallenge, setIsDailyChallenge] = useState(false);
 
   useEffect(() => {
+    if (screen === 'home') {
+      SoundManager.playBGM();
+    }
+  }, [screen]);
+
+  useEffect(() => {
     AppLogger.init();
     initGoogleSignin();
     void log('APP', 'mounted');
     void mobileAds().initialize();
+    void mobileAds().initialize();
     void appendFileLog('app mounted', { logFile: fileLogPaths.file });
+
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      if (nextAppState === 'active') {
+        SoundManager.resumeBGM();
+      } else if (nextAppState === 'background' || nextAppState === 'inactive') {
+        SoundManager.pauseBGM();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
   }, []);
 
   const updateUserState = async () => {

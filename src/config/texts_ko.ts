@@ -8,6 +8,8 @@ export const TEXTS_KO: TextResources = {
         updateMessage: '새로운 버전이 출시되었습니다. 최신 버전으로 업데이트해주세요.',
         updateNow: '지금 업데이트',
         updateLater: '나중에',
+        home: '홈',
+        records: '기록',
     },
     appName: 'Daily Sudoku',
     daily: {
@@ -18,6 +20,10 @@ export const TEXTS_KO: TextResources = {
         startAlertMessage: '진행 중인 오늘의 스도쿠 게임이 있습니다. 새로 시작하시겠습니까? (기존 진행 상황은 삭제됩니다)',
         startAlertCancel: '취소',
         startAlertStart: '시작',
+        rankTabs: {
+            today: '오늘의 순위',
+            streak: '연승 순위',
+        },
     },
     tabs: {
         daily: '오늘의 스도쿠',
@@ -39,6 +45,12 @@ export const TEXTS_KO: TextResources = {
             medium: '중급자',
             hard: '고급자',
             expert: '전문가',
+        },
+        lockMessage: {
+            easy: '입문자 난이도 3회 성공 시 해금',
+            medium: '초보자 난이도 5회 성공 시 해금',
+            hard: '중급자 난이도 7회 성공 시 해금',
+            expert: '고급자 난이도 10회 성공 시 해금',
         },
         overlayTitle: {
             pause: '일시정지',
@@ -121,6 +133,8 @@ export const TEXTS_KO: TextResources = {
         loggedOutMsg: '성공적으로 로그아웃되었습니다. 앱이 종료됩니다.',
         error: '오류',
         signOutFailed: '로그아웃에 실패했습니다.',
+        bgm: '배경 음악',
+        sfx: '효과음',
     },
     tutorial: {
         step1: {
@@ -140,16 +154,28 @@ export const TEXTS_KO: TextResources = {
             text: '굵은 선으로 둘러싸인 3x3 박스 안에도\n1부터 9까지의 숫자가 중복 없이 들어갑니다.',
         },
         step5: {
-            title: '기본 전략 (Cross-Hatching)',
-            text: '가장 중요한 전략입니다!\n우측 상단 박스를 보세요.\n다른 박스의 5번 숫자가 가로/세로를 채우고 있어,\n5가 들어갈 수 있는 칸은 단 하나뿐입니다.',
+            title: '기본 전략 (Basic Strategy)',
+            text: '가장 중요한 전략입니다!\n가로, 세로, 박스에 이미 있는 숫자를 확인하여\n빈 칸에 들어갈 수 있는 유일한 숫자를 찾아보세요.',
         },
         step6: {
             title: '조작법 & 메모 (Controls & Notes)',
-            text: '숫자 패드를 눌러 숫자를 입력합니다.\n연필 아이콘을 누르면 메모 모드가 되어\n후보 숫자를 작게 적어둘 수 있습니다.',
+            text: '숫자 패드를 눌러 숫자를 입력합니다.\n노트 아이콘을 누르면 메모 모드가 되어\n후보 숫자를 작게 적어둘 수 있습니다.',
         },
         step7: {
             title: '실수 (Mistakes)',
             text: '잘못된 숫자를 입력하면 실수가 기록됩니다.\n3번 실수하면 게임이 종료되니 주의하세요!\n(튜토리얼에서는 괜찮습니다)',
+        },
+        step8: {
+            title: '실전 풀이 1 (Practice 1)',
+            text: '두 번째 줄을 보세요. 7이 빠져 있습니다.\n빈 칸을 선택하고 7을 입력해보세요.',
+        },
+        step9: {
+            title: '실전 풀이 2 (Practice 2)',
+            text: '첫 번째 줄의 마지막 빈 칸입니다.\n이 줄에는 1이 빠져 있습니다.\n1을 입력하여 줄을 완성해보세요.',
+        },
+        step10: {
+            title: '게임 시작 (Start Game)',
+            text: '튜토리얼이 끝났습니다!\n이제 남은 빈 칸을 모두 채워보세요.\n행운을 빕니다!',
         },
         buttons: {
             prev: '이전',

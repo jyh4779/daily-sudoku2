@@ -6,10 +6,10 @@ SQLite.enablePromise(true);
 export async function getDb() {
   await log('DB', 'openDatabase begin');
   const db = await SQLite.openDatabase({
-    name: 'sudoku.db',
+    name: 'sudoku_v2.db',
     location: 'default',
-    // Copies bundled DB from android/app/src/main/assets/sudoku.db on first open
-    createFromLocation: '~sudoku.db',
+    // Copies bundled DB from android/app/src/main/assets/sudoku_v2.db on first open
+    createFromLocation: '~sudoku_v2.db',
   });
   await log('DB', 'openDatabase success');
   return db;

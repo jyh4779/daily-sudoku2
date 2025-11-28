@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, FlatList } from 'react-native';
-import { getDailyStreak, getDailyChallengeLeaderboard } from '../stats/data/StatsRepository';
+import { getDailyStreak, getDailyChallengeLeaderboard, getStreakLeaderboard, ensureDailyStats } from '../stats/data/StatsRepository';
 import { getCurrentUser } from '../../core/auth/AuthRepository';
 import { useTexts } from '../../config/texts';
 
@@ -12,8 +12,10 @@ const DailySudokuScreen: React.FC<DailySudokuScreenProps> = ({ onPlay }) => {
     const texts = useTexts();
     const [streak, setStreak] = useState(0);
     const [loading, setLoading] = useState(true);
-    const [leaderboard, setLeaderboard] = useState<any[]>([]);
+    const [dailyLeaderboard, setDailyLeaderboard] = useState<any[]>([]);
+    const [streakLeaderboard, setStreakLeaderboard] = useState<any[]>([]);
     const [todayCompleted, setTodayCompleted] = useState(false);
+    const [activeTab, setActiveTab] = useState<'today' | 'streak'>('today');
 
     const today = new Date().toISOString().split('T')[0];
 
@@ -25,13 +27,20 @@ const DailySudokuScreen: React.FC<DailySudokuScreenProps> = ({ onPlay }) => {
                 const s = await getDailyStreak(user.uid);
                 setStreak(s);
 
+                // Sync daily stats for leaderboard
+                await ensureDailyStats(user.uid, s);
+
                 // Check if already completed today
                 const lb = await getDailyChallengeLeaderboard(today, 100);
                 const myEntry = lb.find((item: any) => item.userId === user.uid);
                 if (myEntry) {
                     setTodayCompleted(true);
                 }
-                setLeaderboard(lb.slice(0, 20)); // Top 20
+                setDailyLeaderboard(lb.slice(0, 20)); // Top 20
+
+                // Load Streak Leaderboard
+                const slb = await getStreakLeaderboard(20);
+                setStreakLeaderboard(slb);
             }
         } catch (e) {
             console.error('Failed to load daily data', e);
@@ -62,6 +71,8 @@ const DailySudokuScreen: React.FC<DailySudokuScreenProps> = ({ onPlay }) => {
         );
     }
 
+    const currentLeaderboard = activeTab === 'today' ? dailyLeaderboard : streakLeaderboard;
+
     return (
         <SafeAreaView style={styles.safe}>
             <View style={styles.header}>
@@ -91,12 +102,30 @@ const DailySudokuScreen: React.FC<DailySudokuScreenProps> = ({ onPlay }) => {
 
                 {/* Leaderboard Section */}
                 <View style={styles.leaderboardContainer}>
-                    <Text style={styles.leaderboardTitle}>{texts.stats.rankings.title}</Text>
-                    {leaderboard.length === 0 ? (
+                    <View style={styles.tabContainer}>
+                        <TouchableOpacity
+                            style={[styles.tabButton, activeTab === 'today' && styles.tabButtonActive]}
+                            onPress={() => setActiveTab('today')}
+                        >
+                            <Text style={[styles.tabText, activeTab === 'today' && styles.tabTextActive]}>
+                                {texts.daily.rankTabs.today}
+                            </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[styles.tabButton, activeTab === 'streak' && styles.tabButtonActive]}
+                            onPress={() => setActiveTab('streak')}
+                        >
+                            <Text style={[styles.tabText, activeTab === 'streak' && styles.tabTextActive]}>
+                                {texts.daily.rankTabs.streak}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    {currentLeaderboard.length === 0 ? (
                         <Text style={styles.emptyText}>{texts.stats.rankings.noData}</Text>
                     ) : (
                         <FlatList
-                            data={leaderboard}
+                            data={currentLeaderboard}
                             keyExtractor={(item, index) => `${item.userId}-${index}`}
                             renderItem={({ item, index }) => (
                                 <View style={styles.rankItem}>
@@ -104,7 +133,11 @@ const DailySudokuScreen: React.FC<DailySudokuScreenProps> = ({ onPlay }) => {
                                         <Text style={styles.rankIndexText}>{index + 1}</Text>
                                     </View>
                                     <Text style={styles.rankName}>{item.displayName}</Text>
-                                    <Text style={styles.rankScore}>{formatTime(item.durationSeconds)}</Text>
+                                    <Text style={styles.rankScore}>
+                                        {activeTab === 'today'
+                                            ? formatTime(item.durationSeconds)
+                                            : `${item.dailyBestWinStreak ?? 0} ${texts.daily.subtitle.split(' ')[0] === '매일' ? '일' : 'Days'}`}
+                                    </Text>
                                 </View>
                             )}
                         />
@@ -254,6 +287,36 @@ const styles = StyleSheet.create({
         fontSize: 15,
         color: '#555',
         fontWeight: '500',
+    },
+    tabContainer: {
+        flexDirection: 'row',
+        marginBottom: 16,
+        backgroundColor: '#eef2f8',
+        borderRadius: 12,
+        padding: 4,
+    },
+    tabButton: {
+        flex: 1,
+        paddingVertical: 8,
+        alignItems: 'center',
+        borderRadius: 10,
+    },
+    tabButtonActive: {
+        backgroundColor: '#fff',
+        shadowColor: '#000',
+        shadowOpacity: 0.05,
+        shadowRadius: 2,
+        shadowOffset: { width: 0, height: 1 },
+        elevation: 2,
+    },
+    tabText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#8f96a8',
+    },
+    tabTextActive: {
+        color: '#5b7df6',
+        fontWeight: '700',
     },
 });
 

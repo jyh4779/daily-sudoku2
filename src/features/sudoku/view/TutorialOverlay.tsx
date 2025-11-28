@@ -49,8 +49,16 @@ const TutorialOverlay: React.FC<Props> = ({ onComplete }) => {
         }
     };
 
+    const placement = currentStep.placement || 'bottom';
+
+    const containerStyle = {
+        justifyContent: placement === 'top' ? 'flex-start' : placement === 'center' ? 'center' : 'flex-end',
+        paddingTop: placement === 'top' ? 100 : 0,
+        paddingBottom: placement === 'bottom' ? 100 : 0,
+    } as const;
+
     return (
-        <View style={styles.container} pointerEvents="box-none">
+        <View style={[styles.container, containerStyle]} pointerEvents="box-none">
             <View style={styles.card}>
                 <Text style={styles.stepIndicator}>Step {stepIndex + 1} / {TUTORIAL_STEPS.length}</Text>
                 <Text style={styles.title}>{stepContent.title}</Text>

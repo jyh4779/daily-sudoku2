@@ -2,6 +2,7 @@ import React from 'react';
 import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, useWindowDimensions, Platform, BackHandler, Alert } from 'react-native';
 import { useTexts } from '../../config/texts';
 import { ADMOB_IDS } from '../../config/admob';
+import SoundManager from '../../core/audio/SoundManager';
 
 type HomeScreenProps = {
   onPressNewGame?: (difficulty: string) => void;
@@ -13,6 +14,9 @@ type HomeScreenProps = {
 };
 
 const noop = () => { };
+
+import { subscribeToUserStats, UserStats } from '../../features/stats/data/StatsRepository';
+import { getCurrentUser } from '../../core/auth/AuthRepository';
 
 const HomeScreen: React.FC<HomeScreenProps> = ({
   onPressNewGame,
@@ -30,6 +34,40 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   const buttonWidth = Math.min(Math.max(availableWidth, 200), 320);
   const accentWidth = Math.min(availableWidth * 0.82, 260);
   const accentSidePadding = horizontalPadding + (availableWidth - accentWidth) / 2;
+
+  const [userStats, setUserStats] = React.useState<UserStats | null>(null);
+
+  React.useEffect(() => {
+    const user = getCurrentUser();
+    if (user) {
+      const unsubscribe = subscribeToUserStats(user.uid, (stats) => {
+        setUserStats(stats);
+      });
+      return () => unsubscribe();
+    }
+  }, []);
+
+  const getLockStatus = (diff: string) => {
+    if (!userStats) return { locked: false, message: '' };
+
+    const counts = userStats.completedCounts;
+
+    switch (diff) {
+      case 'easy':
+        if (counts.beginner < 3) return { locked: true, message: texts.game.lockMessage.easy };
+        break;
+      case 'medium':
+        if (counts.easy < 5) return { locked: true, message: texts.game.lockMessage.medium };
+        break;
+      case 'hard':
+        if (counts.medium < 7) return { locked: true, message: texts.game.lockMessage.hard };
+        break;
+      case 'expert':
+        if (counts.hard < 10) return { locked: true, message: texts.game.lockMessage.expert };
+        break;
+    }
+    return { locked: false, message: '' };
+  };
 
   React.useEffect(() => {
     const backAction = () => {
@@ -111,18 +149,27 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
           >
             <Text style={styles.modalTitle}>{texts.home.newGame}</Text>
             <View style={styles.difficultyList}>
-              {(['beginner', 'easy', 'medium', 'hard', 'expert'] as const).map(diff => (
-                <TouchableOpacity
-                  key={diff}
-                  style={styles.difficultyButton}
-                  onPress={() => {
-                    setShowDifficultyModal(false);
-                    onPressNewGame?.(diff);
-                  }}
-                >
-                  <Text style={styles.difficultyButtonText}>{texts.game.difficulty[diff]}</Text>
-                </TouchableOpacity>
-              ))}
+              {(['beginner', 'easy', 'medium', 'hard', 'expert'] as const).map(diff => {
+                const { locked, message } = getLockStatus(diff);
+                return (
+                  <TouchableOpacity
+                    key={diff}
+                    style={[styles.difficultyButton, locked && styles.difficultyButtonLocked]}
+                    onPress={() => {
+                      if (locked) {
+                        Alert.alert('Locked', message);
+                      } else {
+                        setShowDifficultyModal(false);
+                        onPressNewGame?.(diff);
+                      }
+                    }}
+                  >
+                    <Text style={[styles.difficultyButtonText, locked && styles.difficultyButtonTextLocked]}>
+                      {texts.game.difficulty[diff]} {locked && '🔒'}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </TouchableOpacity>
         </TouchableOpacity>
@@ -253,5 +300,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#333',
     textTransform: 'capitalize',
+  },
+  difficultyButtonLocked: {
+    backgroundColor: '#e0e0e0',
+    opacity: 0.7,
+  },
+  difficultyButtonTextLocked: {
+    color: '#888',
   },
 });

@@ -12,7 +12,8 @@ import { getCurrentUser } from '../../core/auth/AuthRepository';
 import { saveGameResult } from '../stats/data/StatsRepository';
 import TutorialOverlay from './view/TutorialOverlay';
 import AiHintModal from './view/AiHintModal';
-import { TUTORIAL_PUZZLE, TUTORIAL_SOLUTION } from './data/tutorialData';
+import { TUTORIAL_PUZZLE_60, TUTORIAL_SOLUTION } from './data/tutorialData';
+import SoundManager from '../../core/audio/SoundManager';
 
 type SudokuScreenProps = {
   onGoHome?: () => void;
@@ -51,6 +52,12 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode, difficulty 
   const [isPaused, setIsPaused] = useState(false);
   const handleGoHome = onGoHome ?? (() => { });
 
+  const [showTutorialOverlay, setShowTutorialOverlay] = useState(mode === 'tutorial');
+
+  useEffect(() => {
+
+  }, []);
+
   useEffect(() => {
     let isMounted = true;
     const bootstrap = async () => {
@@ -62,7 +69,7 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode, difficulty 
             await loadNewGame(difficulty, isDailyChallenge, today);
           }
         } else if (mode === 'tutorial') {
-          loadTutorialPuzzle(TUTORIAL_PUZZLE, TUTORIAL_SOLUTION);
+          loadTutorialPuzzle(TUTORIAL_PUZZLE_60, TUTORIAL_SOLUTION);
         } else {
           const today = new Date().toISOString().split('T')[0];
           await loadNewGame(difficulty, isDailyChallenge, today);
@@ -185,7 +192,7 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode, difficulty 
           result: isSolved ? 'win' : 'loss',
         }, undefined, isDailyChallenge).catch(err => console.warn('Failed to save game result', err));
       }
-      void (clearSavedProgress?.() ?? Promise.resolve());
+      void (clearSavedProgress?.(isDailyChallenge) ?? Promise.resolve());
     }
   }, [isSolved, isLost, clearSavedProgress, difficulty, mistakes, startTime]);
 
@@ -199,11 +206,8 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode, difficulty 
           let boardSide = 0;
           if (boardBox) {
             const avail = Math.max(0, Math.min(boardBox.w, boardBox.h) - BOARD_PADDING * 2);
-            const THIN = StyleSheet.hairlineWidth;
-            const THICK = 2;
-            const LINES_SUM = THICK * 4 + THIN * 6;
-            const cell = Math.max(0, Math.floor((avail - LINES_SUM) / 9));
-            boardSide = cell * 9 + LINES_SUM;
+            const cell = Math.floor(avail / 9);
+            boardSide = cell * 9;
           }
 
           return (
@@ -317,8 +321,8 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode, difficulty 
       }
 
       {
-        mode === 'tutorial' && (
-          <TutorialOverlay onComplete={handleGoHome} />
+        showTutorialOverlay && (
+          <TutorialOverlay onComplete={() => setShowTutorialOverlay(false)} />
         )
       }
 

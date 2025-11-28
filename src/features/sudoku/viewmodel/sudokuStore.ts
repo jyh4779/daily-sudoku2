@@ -4,6 +4,8 @@ import { AiHintResponse, fetchAiHint } from '../data/AiHintRepository';
 import { log, warn } from '../../../core/logger/log';
 import { appendFileLog } from '../../../core/logger/fileLogger';
 import { clearSavedGameSnapshot, loadSavedGameSnapshot, saveSavedGameSnapshot } from '../data/SavedGameRepository';
+import SoundManager from '../../../core/audio/SoundManager';
+import { useSettingsStore } from '../../settings/store/settingsStore';
 
 const N = 9;
 const empty9 = () => Array.from({ length: N }, () => Array(N).fill(0));
@@ -167,6 +169,14 @@ export const useSudokuStore = create<SudokuState>((set, get) => ({
     const prev = values[r][c] || 0;
     if (prev === n) return;
     const isCorrect = solution?.[r]?.[c] === n;
+
+    const isSfxEnabled = useSettingsStore.getState().isSfxEnabled;
+    if (isCorrect) {
+      if (isSfxEnabled) SoundManager.playSuccessSound();
+    } else {
+      if (isSfxEnabled) SoundManager.playFailSound();
+    }
+
     set(state => {
       const next = state.values.map(row => row.slice());
       next[r][c] = n;
@@ -458,16 +468,39 @@ export const useSudokuStore = create<SudokuState>((set, get) => ({
       const snapshot = await loadSavedGameSnapshot(isDailyChallenge ? 'daily' : 'normal');
       if (!snapshot) return false;
       const values = to9x9(snapshot.values as number[][]);
+      const solution = to9x9(snapshot.solution as number[][]);
+      const mistakes = snapshot.mistakes ?? 0;
+      const mistakeLimit = snapshot.mistakeLimit ?? 3;
+
+      // Validate: if already lost or won, discard
+      let isWon = true;
+      for (let r = 0; r < 9; r++) {
+        for (let c = 0; c < 9; c++) {
+          if (values[r][c] !== solution[r][c]) {
+            isWon = false;
+            break;
+          }
+        }
+        if (!isWon) break;
+      }
+      const isLost = mistakes >= mistakeLimit;
+
+      if (isWon || isLost) {
+        console.log('Discarding completed saved game');
+        await clearSavedGameSnapshot(isDailyChallenge ? 'daily' : 'normal');
+        return false;
+      }
+
       set({
         puzzle: to9x9(snapshot.puzzle as number[][]),
-        solution: to9x9(snapshot.solution as number[][]),
+        solution,
         values,
         grid: values,
         notes: to9x9(snapshot.notes as number[][]),
         selected: null,
         difficulty: snapshot.difficulty ?? 'easy',
-        mistakes: snapshot.mistakes ?? 0,
-        mistakeLimit: snapshot.mistakeLimit ?? 3,
+        mistakes,
+        mistakeLimit,
         undoStack: Array.isArray(snapshot.undoStack) ? snapshot.undoStack : [],
         elapsedSec: snapshot.elapsedSec ?? 0,
         hintsUsed: snapshot.hintsUsed ?? 0,
@@ -487,6 +520,7 @@ export const useSudokuStore = create<SudokuState>((set, get) => ({
   clearSavedProgress: async (isDailyChallenge: boolean = false) => {
     try {
       await clearSavedGameSnapshot(isDailyChallenge ? 'daily' : 'normal');
+      set({ hasLoadedGame: false }); // Stop auto-save
     } catch (e) {
       await warn('PUZZLE', 'clear saved failed', { error: String((e as Error).message) });
     }
@@ -513,11 +547,30 @@ const toSnapshot = (state: SudokuState) => ({
   isDailyChallenge: state.isDailyChallenge,
 });
 
+const isGameCompleted = (state: SudokuState) => {
+  // Check loss
+  if (state.mistakes >= state.mistakeLimit) return true;
+
+  // Check win
+  const { values, solution } = state;
+  if (!values || !solution) return false;
+  for (let r = 0; r < 9; r++) {
+    for (let c = 0; c < 9; c++) {
+      if (values[r][c] !== solution[r][c]) return false;
+    }
+  }
+  return true;
+};
+
 let hasSetupPersistence = false;
 if (!hasSetupPersistence) {
   hasSetupPersistence = true;
   useSudokuStore.subscribe(state => {
     if (!state.hasLoadedGame) return;
+
+    // Don't save if game is over
+    if (isGameCompleted(state)) return;
+
     const type = state.isDailyChallenge ? 'daily' : 'normal';
     void saveSavedGameSnapshot(toSnapshot(state), type).catch(err => {
       console.warn('Failed to save sudoku progress', err);

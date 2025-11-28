@@ -6,6 +6,8 @@ export const TEXTS_EN = {
         updateMessage: 'A new version of the app is available. Please update to the latest version.',
         updateNow: 'Update Now',
         updateLater: 'Later',
+        home: 'Home',
+        records: 'Records',
     },
     appName: 'Daily Sudoku',
     daily: {
@@ -16,6 +18,10 @@ export const TEXTS_EN = {
         startAlertMessage: 'This will abandon your current daily challenge progress. Do you want to start a new one?',
         startAlertCancel: 'Cancel',
         startAlertStart: 'Start',
+        rankTabs: {
+            today: 'Today',
+            streak: 'Streak',
+        },
     },
     tabs: {
         daily: 'Daily',
@@ -37,6 +43,12 @@ export const TEXTS_EN = {
             medium: 'Medium',
             hard: 'Hard',
             expert: 'Expert',
+        },
+        lockMessage: {
+            easy: 'Win 3 Beginner games to unlock',
+            medium: 'Win 5 Easy games to unlock',
+            hard: 'Win 7 Medium games to unlock',
+            expert: 'Win 10 Hard games to unlock',
         },
         overlayTitle: {
             pause: 'Pause',
@@ -119,6 +131,8 @@ export const TEXTS_EN = {
         loggedOutMsg: 'You have been successfully signed out. The app will now close.',
         error: 'Error',
         signOutFailed: 'Failed to sign out.',
+        bgm: 'Background Music',
+        sfx: 'Sound Effects',
     },
     tutorial: {
         step1: {
@@ -138,16 +152,28 @@ export const TEXTS_EN = {
             text: 'Each 3x3 box outlined in bold must contain\nthe numbers 1 to 9 without repetitions.',
         },
         step5: {
-            title: 'Basic Strategy (Cross-Hatching)',
-            text: 'This is the most important strategy!\nLook at the top-right box.\nThe number 5 in other boxes blocks rows and columns,\nleaving only one possible spot for 5 in this box.',
+            title: 'Basic Strategy',
+            text: 'This is the most important strategy!\nCheck the numbers already in rows, columns, and boxes\nto find the only possible number for an empty cell.',
         },
         step6: {
             title: 'Controls & Notes',
-            text: 'Tap the number pad to input numbers.\nTap the pencil icon to toggle Note Mode,\nallowing you to write small candidate numbers.',
+            text: 'Tap the number pad to input numbers.\nTap the note icon to toggle Note Mode,\nallowing you to write small candidate numbers.',
         },
         step7: {
             title: 'Mistakes',
             text: 'Entering a wrong number counts as a mistake.\n3 mistakes will end the game!\n(But it\'s okay in this tutorial)',
+        },
+        step8: {
+            title: 'Practice 1',
+            text: 'Look at the second row. The number 7 is missing.\nSelect the empty cell and enter 7.',
+        },
+        step9: {
+            title: 'Practice 2',
+            text: 'Look at the last empty cell in the first row.\nThe number 1 is missing.\nEnter 1 to complete the row.',
+        },
+        step10: {
+            title: 'Start Game',
+            text: 'The tutorial is complete!\nNow fill in all the remaining empty cells.\nGood luck!',
         },
         buttons: {
             prev: 'Prev',

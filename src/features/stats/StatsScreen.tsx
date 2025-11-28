@@ -17,7 +17,7 @@ const StatsScreen: React.FC<StatsScreenProps> = ({ onGoBack }) => {
   // Rankings State
   const [rankingDifficulty, setRankingDifficulty] = useState<Difficulty>('medium');
   const [rankingMetric, setRankingMetric] = useState<LeaderboardMetric>('bestTime');
-  const [rankingPeriod, setRankingPeriod] = useState<LeaderboardPeriod>('all_time');
+  const [rankingPeriod, setRankingPeriod] = useState<LeaderboardPeriod>('weekly');
   const [leaderboard, setLeaderboard] = useState<UserStats[]>([]);
   const [rankingLoading, setRankingLoading] = useState(false);
 
@@ -127,7 +127,9 @@ const StatsScreen: React.FC<StatsScreenProps> = ({ onGoBack }) => {
           <View key={diff} style={styles.bestTimeRow}>
             <Text style={styles.bestTimeLabel}>{texts.game.difficulty[diff]}</Text>
             <Text style={styles.bestTimeValue}>
-              {currentStats.bestTimes[diff] ? formatTime(currentStats.bestTimes[diff]!) : '-'}
+              {(currentStats.bestTimes[diff] !== null && currentStats.bestTimes[diff] !== undefined)
+                ? formatTime(currentStats.bestTimes[diff]!)
+                : '-'}
             </Text>
           </View>
         ))}
@@ -140,14 +142,14 @@ const StatsScreen: React.FC<StatsScreenProps> = ({ onGoBack }) => {
       <View style={styles.filterContainer}>
         {/* Period Selector */}
         <View style={styles.periodRow}>
-          {(['all_time', 'weekly', 'daily'] as LeaderboardPeriod[]).map((period) => (
+          {(['weekly', 'daily'] as LeaderboardPeriod[]).map((period) => (
             <TouchableOpacity
               key={period}
               style={[styles.periodChip, rankingPeriod === period && styles.periodChipActive]}
               onPress={() => setRankingPeriod(period)}
             >
               <Text style={[styles.periodText, rankingPeriod === period && styles.periodTextActive]}>
-                {period === 'all_time' ? 'All Time' : period === 'weekly' ? 'Weekly' : 'Daily'}
+                {period === 'weekly' ? 'Weekly' : 'Daily'}
               </Text>
             </TouchableOpacity>
           ))}
@@ -205,7 +207,9 @@ const StatsScreen: React.FC<StatsScreenProps> = ({ onGoBack }) => {
               <View style={styles.rankScore}>
                 <Text style={styles.rankScoreText}>
                   {rankingMetric === 'bestTime'
-                    ? item.bestTimes[rankingDifficulty] ? formatTime(item.bestTimes[rankingDifficulty]!) : '-'
+                    ? (item.bestTimes[rankingDifficulty] !== null && item.bestTimes[rankingDifficulty] !== undefined)
+                      ? formatTime(item.bestTimes[rankingDifficulty]!)
+                      : '-'
                     : rankingMetric === 'winRate'
                       ? `${Math.min(100, Math.round((item.winRates?.[rankingDifficulty] ?? 0) * 100))}%`
                       : (item.completedCounts?.[rankingDifficulty] ?? 0)}

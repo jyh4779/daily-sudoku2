@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, Alert, BackHandler } from 'react-native';
+import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, Alert, BackHandler, Switch, ScrollView } from 'react-native';
 import { GoogleSigninButton } from '@react-native-google-signin/google-signin';
 import { useTexts } from '../../config/texts';
 import { signInWithGoogle, signOut, getCurrentUser } from '../../core/auth/AuthRepository';
 import { useLanguageStore } from './store/languageStore';
+import { useSettingsStore } from './store/settingsStore';
 import VersionCheck from 'react-native-version-check';
 import { subscribeToUserStats, updateUserNickname } from '../stats/data/StatsRepository';
 import { getRandomNickname } from '../../config/nicknames';
@@ -18,6 +19,7 @@ type SettingsScreenProps = {
 const SettingsScreen: React.FC<SettingsScreenProps> = ({ onGoBack, onUserChanged, onStartTutorial }) => {
     const texts = useTexts();
     const { language, setLanguage } = useLanguageStore();
+    const { isBgmEnabled, setBgmEnabled, isSfxEnabled, setSfxEnabled } = useSettingsStore();
     const currentUser = getCurrentUser();
     const isAnonymous = currentUser?.isAnonymous ?? true;
     const userId = currentUser?.uid ?? 'Unknown';
@@ -201,7 +203,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onGoBack, onUserChanged
                 <View style={styles.headerSpacer} />
             </View>
 
-            <View style={styles.content}>
+            <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>{texts.settings.language}</Text>
                     <View style={styles.card}>
@@ -223,6 +225,30 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onGoBack, onUserChanged
                 </View>
 
                 <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Sound</Text>
+                    <View style={styles.card}>
+                        <View style={styles.row}>
+                            <Text style={styles.label}>{texts.settings.bgm}</Text>
+                            <Switch
+                                value={isBgmEnabled}
+                                onValueChange={setBgmEnabled}
+                                trackColor={{ false: '#d0d0d0', true: '#5b7df6' }}
+                                thumbColor={isBgmEnabled ? '#fff' : '#f4f3f4'}
+                            />
+                        </View>
+                        <View style={[styles.row, { marginTop: 12 }]}>
+                            <Text style={styles.label}>{texts.settings.sfx}</Text>
+                            <Switch
+                                value={isSfxEnabled}
+                                onValueChange={setSfxEnabled}
+                                trackColor={{ false: '#d0d0d0', true: '#5b7df6' }}
+                                thumbColor={isSfxEnabled ? '#fff' : '#f4f3f4'}
+                            />
+                        </View>
+                    </View>
+                </View>
+
+                <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Help</Text>
                     <TouchableOpacity style={styles.card} onPress={onStartTutorial}>
                         <Text style={styles.label}>How to Play (Tutorial)</Text>
@@ -231,11 +257,34 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onGoBack, onUserChanged
 
                 {/* <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Debug</Text>
-                    <TouchableOpacity style={styles.card} onPress={handleVerifyPuzzles}>
-                        <Text style={styles.label}>Verify Easy Puzzles (Log to Console)</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.card} onPress={handleAnalyzeAndMigratePuzzles}>
-                        <Text style={styles.label}>Analyze & Migrate (hell to expert)</Text>
+                    <TouchableOpacity style={styles.card} onPress={async () => {
+                        if (!currentUser) return;
+                        Alert.alert(
+                            'Clean Up Data',
+                            'This will delete all game records with 0 seconds duration and recalculate your stats. This cannot be undone.',
+                            [
+                                { text: 'Cancel', style: 'cancel' },
+                                {
+                                    text: 'Clean Up',
+                                    style: 'destructive',
+                                    onPress: async () => {
+                                        setIsLoading(true);
+                                        try {
+                                            const { cleanupInvalidGames } = require('../stats/data/StatsRepository');
+                                            const count = await cleanupInvalidGames(currentUser.uid);
+                                            Alert.alert('Success', `Deleted ${count} invalid games and updated stats.`);
+                                        } catch (e) {
+                                            Alert.alert('Error', 'Failed to clean up data');
+                                            console.error(e);
+                                        } finally {
+                                            setIsLoading(false);
+                                        }
+                                    }
+                                }
+                            ]
+                        );
+                    }}>
+                        <Text style={styles.label}>Clean Up Invalid Data (0s games)</Text>
                     </TouchableOpacity>
                 </View> */}
 
@@ -306,7 +355,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onGoBack, onUserChanged
                         </TouchableOpacity>
                     )}
                 </View>
-            </View>
+            </ScrollView>
         </SafeAreaView>
     );
 };
@@ -350,8 +399,11 @@ const styles = StyleSheet.create({
     },
     content: {
         flex: 1,
+    },
+    scrollContent: {
         padding: 24,
         gap: 32,
+        paddingBottom: 40,
     },
     section: {
         gap: 12,
@@ -484,5 +536,10 @@ const styles = StyleSheet.create({
     },
     cancelBtn: {
         backgroundColor: '#ff6b6b',
+    },
+    row: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
     },
 });
