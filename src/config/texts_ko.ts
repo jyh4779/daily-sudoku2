@@ -14,6 +14,10 @@ export const TEXTS_KO: TextResources = {
         title: '오늘의 스도쿠',
         subtitle: '매일 새로운 퍼즐에 도전하세요!',
         playButton: '오늘의 퍼즐 시작',
+        startAlertTitle: '오늘의 스도쿠 시작',
+        startAlertMessage: '진행 중인 오늘의 스도쿠 게임이 있습니다. 새로 시작하시겠습니까? (기존 진행 상황은 삭제됩니다)',
+        startAlertCancel: '취소',
+        startAlertStart: '시작',
     },
     tabs: {
         daily: '오늘의 스도쿠',
@@ -54,6 +58,7 @@ export const TEXTS_KO: TextResources = {
             hint: '힌트',
             note: '노트',
             padMode: '탭 입력',
+            aiHint: 'AI 힌트',
         },
     },
     stats: {

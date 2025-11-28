@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, BackHandler, FlatList } from 'react-native';
-import { subscribeToUserStats, UserStats, getLeaderboard, Difficulty, LeaderboardMetric } from './data/StatsRepository';
+import { subscribeToUserStats, UserStats, getLeaderboard, Difficulty, LeaderboardMetric, LeaderboardPeriod } from './data/StatsRepository';
 import { getCurrentUser } from '../../core/auth/AuthRepository';
 import { useTexts } from '../../config/texts';
 
@@ -17,6 +17,7 @@ const StatsScreen: React.FC<StatsScreenProps> = ({ onGoBack }) => {
   // Rankings State
   const [rankingDifficulty, setRankingDifficulty] = useState<Difficulty>('medium');
   const [rankingMetric, setRankingMetric] = useState<LeaderboardMetric>('bestTime');
+  const [rankingPeriod, setRankingPeriod] = useState<LeaderboardPeriod>('all_time');
   const [leaderboard, setLeaderboard] = useState<UserStats[]>([]);
   const [rankingLoading, setRankingLoading] = useState(false);
 
@@ -46,10 +47,10 @@ const StatsScreen: React.FC<StatsScreenProps> = ({ onGoBack }) => {
 
   const fetchLeaderboard = useCallback(async () => {
     setRankingLoading(true);
-    const data = await getLeaderboard(rankingMetric, rankingDifficulty);
+    const data = await getLeaderboard(rankingMetric, rankingDifficulty, rankingPeriod);
     setLeaderboard(data);
     setRankingLoading(false);
-  }, [rankingMetric, rankingDifficulty]);
+  }, [rankingMetric, rankingDifficulty, rankingPeriod]);
 
   useEffect(() => {
     if (tab === 'rankings') {
@@ -137,6 +138,21 @@ const StatsScreen: React.FC<StatsScreenProps> = ({ onGoBack }) => {
   const renderRankings = () => (
     <View style={styles.content}>
       <View style={styles.filterContainer}>
+        {/* Period Selector */}
+        <View style={styles.periodRow}>
+          {(['all_time', 'weekly', 'daily'] as LeaderboardPeriod[]).map((period) => (
+            <TouchableOpacity
+              key={period}
+              style={[styles.periodChip, rankingPeriod === period && styles.periodChipActive]}
+              onPress={() => setRankingPeriod(period)}
+            >
+              <Text style={[styles.periodText, rankingPeriod === period && styles.periodTextActive]}>
+                {period === 'all_time' ? 'All Time' : period === 'weekly' ? 'Weekly' : 'Daily'}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll}>
           {(['beginner', 'easy', 'medium', 'hard', 'expert'] as Difficulty[]).map((diff) => (
             <TouchableOpacity
@@ -191,8 +207,8 @@ const StatsScreen: React.FC<StatsScreenProps> = ({ onGoBack }) => {
                   {rankingMetric === 'bestTime'
                     ? item.bestTimes[rankingDifficulty] ? formatTime(item.bestTimes[rankingDifficulty]!) : '-'
                     : rankingMetric === 'winRate'
-                      ? `${Math.round(item.winRate * 100)}%`
-                      : item.wins}
+                      ? `${Math.min(100, Math.round((item.winRates?.[rankingDifficulty] ?? 0) * 100))}%`
+                      : (item.completedCounts?.[rankingDifficulty] ?? 0)}
                 </Text>
               </View>
             </View>
@@ -415,6 +431,29 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#f0f2f5',
+  },
+  periodRow: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    marginBottom: 12,
+    gap: 8,
+  },
+  periodChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: '#f0f2f5',
+  },
+  periodChipActive: {
+    backgroundColor: '#333',
+  },
+  periodText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#8f96a8',
+  },
+  periodTextActive: {
+    color: '#fff',
   },
   filterScroll: {
     paddingHorizontal: 16,

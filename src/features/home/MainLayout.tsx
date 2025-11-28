@@ -14,6 +14,7 @@ type MainLayoutProps = {
     onPressNewGame: (difficulty: string) => void;
     onPressContinue: () => void;
     onPressSettings: () => void;
+    onPressDailyChallenge: () => void;
     continueAvailable: boolean;
     onGoHome: () => void; // Used for back navigation from other screens if needed
 };
@@ -22,6 +23,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     onPressNewGame,
     onPressContinue,
     onPressSettings,
+    onPressDailyChallenge,
     continueAvailable,
     onGoHome,
 }) => {
@@ -37,13 +39,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     const renderContent = () => {
         switch (activeTab) {
             case 'daily':
-                return <DailySudokuScreen onPlay={() => onPressNewGame('medium')} />; // Default to medium for daily for now
+                return <DailySudokuScreen onPlay={onPressDailyChallenge} />;
             case 'home':
                 return (
                     <HomeScreen
                         onPressNewGame={onPressNewGame}
                         onPressContinue={onPressContinue}
                         onPressSettings={onPressSettings}
+                        onPressDaily={() => setActiveTab('daily')}
                         continueAvailable={continueAvailable}
                     // Stats button is removed from Home, so we don't pass onPressStats
                     />

@@ -18,48 +18,54 @@ type SudokuScreenProps = {
   onGoHome?: () => void;
   mode: 'new' | 'resume' | 'tutorial';
   difficulty?: 'beginner' | 'easy' | 'medium' | 'hard' | 'expert';
+  isDailyChallenge?: boolean;
 };
 
-const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode, difficulty = 'easy' }) => {
+const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode, difficulty = 'easy', isDailyChallenge = false }) => {
   const texts = useTexts();
   const { width } = useWindowDimensions();
   const GUTTER = Math.max(16, Math.min(24, Math.round(width * 0.04)));
 
   const [boardBox, setBoardBox] = useState<{ w: number; h: number } | null>(null);
-  const loadNewGame = useSudokuStore(s => s.loadNewGame);
-  const loadTutorialPuzzle = useSudokuStore(s => s.loadTutorialPuzzle);
-  const mistakes = useSudokuStore(s => s.mistakes);
-  const mistakeLimit = useSudokuStore(s => s.mistakeLimit);
-  const values = useSudokuStore(s => s.values);
-  const solution = useSudokuStore(s => s.solution);
-  const hintsUsed = useSudokuStore(s => s.hintsUsed);
-  const maxHints = useSudokuStore(s => s.maxHints);
-  const resetMistakes = useSudokuStore(s => s.resetMistakes);
-  const storeDifficulty = useSudokuStore(s => s.difficulty);
-  const restartCurrent = useSudokuStore(s => s.restartCurrent);
-  const elapsedSec = useSudokuStore(s => s.elapsedSec);
-  const resetElapsed = useSudokuStore(s => s.resetElapsed);
+
   const incrementElapsed = useSudokuStore(s => s.incrementElapsed);
   const loadSavedGameFromDb = useSudokuStore(s => s.loadSavedGameFromDb);
   const clearSavedProgress = useSudokuStore(s => s.clearSavedProgress);
+  const loadNewGame = useSudokuStore(s => s.loadNewGame);
+  const loadTutorialPuzzle = useSudokuStore(s => s.loadTutorialPuzzle);
+  const restartCurrent = useSudokuStore(s => s.restartCurrent);
+  const resetElapsed = useSudokuStore(s => s.resetElapsed);
+  const resetMistakes = useSudokuStore(s => s.resetMistakes);
+
+  const values = useSudokuStore(s => s.values);
+  const solution = useSudokuStore(s => s.solution);
+  const mistakes = useSudokuStore(s => s.mistakes);
+  const mistakeLimit = useSudokuStore(s => s.mistakeLimit);
+  const elapsedSec = useSudokuStore(s => s.elapsedSec);
+  const hintsUsed = useSudokuStore(s => s.hintsUsed);
+  const maxHints = useSudokuStore(s => s.maxHints);
+  const storeDifficulty = useSudokuStore(s => s.difficulty);
+  // We use the prop isDailyChallenge for loading, but store also has it. 
+  // We don't necessarily need to read it from store if we trust the prop for initial load.
+
   const [isPaused, setIsPaused] = useState(false);
   const handleGoHome = onGoHome ?? (() => { });
-
-
 
   useEffect(() => {
     let isMounted = true;
     const bootstrap = async () => {
       try {
         if (mode === 'resume') {
-          const loaded = await loadSavedGameFromDb();
+          const loaded = await loadSavedGameFromDb(isDailyChallenge);
           if (!loaded) {
-            await loadNewGame(difficulty);
+            const today = new Date().toISOString().split('T')[0];
+            await loadNewGame(difficulty, isDailyChallenge, today);
           }
         } else if (mode === 'tutorial') {
           loadTutorialPuzzle(TUTORIAL_PUZZLE, TUTORIAL_SOLUTION);
         } else {
-          await loadNewGame(difficulty);
+          const today = new Date().toISOString().split('T')[0];
+          await loadNewGame(difficulty, isDailyChallenge, today);
         }
       } catch (e) {
         console.error(e);
@@ -71,7 +77,7 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode, difficulty 
     return () => {
       isMounted = false;
     };
-  }, [mode, difficulty, loadNewGame, loadSavedGameFromDb, loadTutorialPuzzle]);
+  }, [mode, difficulty, isDailyChallenge, loadNewGame, loadSavedGameFromDb, loadTutorialPuzzle]);
 
   const onLayoutBoardArea = (e: LayoutChangeEvent) => {
     const { width: w, height: h } = e.nativeEvent.layout;
@@ -121,24 +127,6 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode, difficulty 
     setStartTime(Date.now());
   }, [mode, loadNewGame, restartCurrent]);
 
-  // Save stats when game ends
-  useEffect(() => {
-    if (isSolved || isLost) {
-      const user = getCurrentUser();
-      if (user) {
-        const endTime = Date.now();
-        saveGameResult({
-          userId: user.uid,
-          difficulty: difficulty,
-          mistakes: mistakes,
-          startTime: Math.floor(startTime / 1000),
-          endTime: Math.floor(endTime / 1000),
-          durationSeconds: elapsedSec,
-          result: isSolved ? 'win' : 'loss',
-        });
-      }
-    }
-  }, [isSolved, isLost]);
 
   useEffect(() => {
     if (isPaused || isSolved || isLost) return;
@@ -195,7 +183,7 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode, difficulty 
           endTime: Math.floor(endTime / 1000),
           durationSeconds: durationSeconds,
           result: isSolved ? 'win' : 'loss',
-        }, user.displayName || undefined).catch(err => console.warn('Failed to save game result', err));
+        }, undefined, isDailyChallenge).catch(err => console.warn('Failed to save game result', err));
       }
       void (clearSavedProgress?.() ?? Promise.resolve());
     }

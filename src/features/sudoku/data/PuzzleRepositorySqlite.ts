@@ -64,6 +64,52 @@ export async function getRandomPairByDifficulty(diff: Difficulty): Promise<Pair>
   }
 }
 
+import { seededRandom } from '../../../core/utils/seededRandom';
+
+export async function getDailyPuzzle(dateString: string): Promise<Pair> {
+  const db = await getDb();
+  // Fixed difficulty for Daily Challenge: Medium (2)
+  const diff = 'medium';
+  const diffInt = 2;
+
+  await log('PUZZLE', 'getDailyPuzzle start', { dateString });
+
+  try {
+    // 1. Get total count of medium puzzles
+    const [countRes] = await db.executeSql(`SELECT count(*) as c FROM puzzles WHERE difficulty = ?`, [diffInt]);
+    const totalCount = countRes.rows.item(0).c;
+
+    if (totalCount === 0) {
+      throw new Error('No medium puzzles found for daily challenge');
+    }
+
+    // 2. Generate seeded random index
+    const rng = seededRandom(dateString);
+    const randomIndex = Math.floor(rng() * totalCount);
+
+    // 3. Fetch the puzzle at that index
+    // Note: LIMIT 1 OFFSET N is standard for picking a specific row
+    const query = `SELECT id, puzzle, solution, difficulty FROM puzzles WHERE difficulty = ? LIMIT 1 OFFSET ?`;
+    const [res] = await db.executeSql(query, [diffInt, randomIndex]);
+
+    if (res.rows.length === 0) {
+      throw new Error(`Failed to fetch daily puzzle at offset ${randomIndex}`);
+    }
+
+    const row = res.rows.item(0);
+    await log('PUZZLE', 'daily puzzle picked', { id: row.id, dateString, index: randomIndex });
+
+    return {
+      puzzle: toGrid(row.puzzle),
+      solution: toGrid(row.solution),
+      meta: { id: row.id, difficulty: diff },
+    };
+  } catch (e: any) {
+    await warn('PUZZLE', 'getDailyPuzzle failed', { error: String(e?.message ?? e) });
+    throw e;
+  }
+}
+
 async function debugDbStatus(db: any) {
   try {
     const [tables] = await db.executeSql("SELECT name FROM sqlite_master WHERE type='table'");

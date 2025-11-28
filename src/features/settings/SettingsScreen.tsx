@@ -5,6 +5,9 @@ import { useTexts } from '../../config/texts';
 import { signInWithGoogle, signOut, getCurrentUser } from '../../core/auth/AuthRepository';
 import { useLanguageStore } from './store/languageStore';
 import VersionCheck from 'react-native-version-check';
+import { subscribeToUserStats, updateUserNickname } from '../stats/data/StatsRepository';
+import { getRandomNickname } from '../../config/nicknames';
+import { TextInput } from 'react-native';
 
 type SettingsScreenProps = {
     onGoBack: () => void;
@@ -19,6 +22,47 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onGoBack, onUserChanged
     const isAnonymous = currentUser?.isAnonymous ?? true;
     const userId = currentUser?.uid ?? 'Unknown';
     const [isLoading, setIsLoading] = useState(false);
+    const [nickname, setNickname] = useState<string>('');
+    const [isEditingNickname, setIsEditingNickname] = useState(false);
+    const [editNicknameText, setEditNicknameText] = useState('');
+
+    React.useEffect(() => {
+        if (currentUser) {
+            const unsubscribe = subscribeToUserStats(currentUser.uid, (stats) => {
+                if (stats.displayName) {
+                    setNickname(stats.displayName);
+                }
+            });
+            return () => unsubscribe();
+        }
+    }, [currentUser]);
+
+    const handleSaveNickname = async () => {
+        if (!currentUser) return;
+        if (!editNicknameText.trim()) {
+            Alert.alert('Error', 'Nickname cannot be empty');
+            return;
+        }
+        setIsLoading(true);
+        try {
+            await updateUserNickname(currentUser.uid, editNicknameText.trim());
+            setIsEditingNickname(false);
+            Alert.alert('Success', 'Nickname updated!');
+        } catch (e) {
+            Alert.alert('Error', 'Failed to update nickname');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleRandomNickname = () => {
+        setEditNicknameText(getRandomNickname());
+    };
+
+    const startEditingNickname = () => {
+        setEditNicknameText(nickname);
+        setIsEditingNickname(true);
+    };
 
     React.useEffect(() => {
         const backAction = () => {
@@ -198,6 +242,37 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onGoBack, onUserChanged
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>{texts.settings.account}</Text>
                     <View style={styles.card}>
+                        <Text style={styles.label}>Nickname:</Text>
+                        {isEditingNickname ? (
+                            <View style={styles.editNicknameRow}>
+                                <TextInput
+                                    style={styles.nicknameInput}
+                                    value={editNicknameText}
+                                    onChangeText={setEditNicknameText}
+                                    placeholder="Enter nickname"
+                                    maxLength={20}
+                                />
+                                <View style={styles.editNicknameActions}>
+                                    <TouchableOpacity style={styles.smallBtn} onPress={handleRandomNickname}>
+                                        <Text style={styles.smallBtnText}>Random</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity style={[styles.smallBtn, styles.saveBtn]} onPress={handleSaveNickname}>
+                                        <Text style={[styles.smallBtnText, styles.saveBtnText]}>Save</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity style={[styles.smallBtn, styles.cancelBtn]} onPress={() => setIsEditingNickname(false)}>
+                                        <Text style={styles.smallBtnText}>Cancel</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        ) : (
+                            <View style={styles.nicknameRow}>
+                                <Text style={styles.value}>{nickname || 'Loading...'}</Text>
+                                <TouchableOpacity style={styles.smallBtn} onPress={startEditingNickname}>
+                                    <Text style={styles.smallBtnText}>Edit</Text>
+                                </TouchableOpacity>
+                            </View>
+                        )}
+
                         <Text style={styles.label}>{texts.settings.userId}:</Text>
                         <Text style={styles.value}>{userId}</Text>
                         <Text style={styles.label}>{texts.settings.type}:</Text>
@@ -362,5 +437,52 @@ const styles = StyleSheet.create({
     },
     langTextActive: {
         color: '#fff',
+    },
+    nicknameRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 8,
+    },
+    editNicknameRow: {
+        gap: 8,
+        marginBottom: 8,
+    },
+    nicknameInput: {
+        borderWidth: 1,
+        borderColor: '#ddd',
+        borderRadius: 8,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        fontSize: 16,
+        color: '#333',
+        backgroundColor: '#f9f9f9',
+    },
+    editNicknameActions: {
+        flexDirection: 'row',
+        gap: 8,
+        justifyContent: 'flex-end',
+    },
+    smallBtn: {
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 6,
+        backgroundColor: '#eee',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    smallBtnText: {
+        fontSize: 12,
+        fontWeight: '600',
+        color: '#555',
+    },
+    saveBtn: {
+        backgroundColor: '#5b7df6',
+    },
+    saveBtnText: {
+        color: '#fff',
+    },
+    cancelBtn: {
+        backgroundColor: '#ff6b6b',
     },
 });

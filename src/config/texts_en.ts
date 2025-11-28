@@ -12,6 +12,10 @@ export const TEXTS_EN = {
         title: 'Daily Sudoku',
         subtitle: 'Play a new puzzle every day!',
         playButton: 'Play Today\'s Puzzle',
+        startAlertTitle: 'Start Daily Challenge?',
+        startAlertMessage: 'This will abandon your current daily challenge progress. Do you want to start a new one?',
+        startAlertCancel: 'Cancel',
+        startAlertStart: 'Start',
     },
     tabs: {
         daily: 'Daily',
@@ -52,6 +56,7 @@ export const TEXTS_EN = {
             hint: 'Hint',
             note: 'Note',
             padMode: 'Pad Mode',
+            aiHint: 'AI Hint',
         },
     },
     stats: {

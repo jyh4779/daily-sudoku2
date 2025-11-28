@@ -26,10 +26,12 @@ export default function App() {
   const [screen, setScreen] = useState<ScreenState>('splash');
   const [gameMode, setGameMode] = useState<'new' | 'resume' | 'tutorial'>('new');
   const [canResume, setCanResume] = useState(false);
+  const [canResumeDaily, setCanResumeDaily] = useState(false);
   const [user, setUser] = useState<AppUser | null>(null);
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [showLoginButtons, setShowLoginButtons] = useState(false);
   const [gameDifficulty, setGameDifficulty] = useState<'beginner' | 'easy' | 'medium' | 'hard' | 'expert'>('easy');
+  const [isDailyChallenge, setIsDailyChallenge] = useState(false);
 
   useEffect(() => {
     AppLogger.init();
@@ -101,9 +103,12 @@ export default function App() {
   }, [texts]);
 
   const refreshResumeAvailability = useCallback(() => {
-    void hasSavedGameSnapshot()
+    void hasSavedGameSnapshot('normal')
       .then(setCanResume)
       .catch(() => setCanResume(false));
+    void hasSavedGameSnapshot('daily')
+      .then(setCanResumeDaily)
+      .catch(() => setCanResumeDaily(false));
   }, []);
 
   useEffect(() => {
@@ -152,7 +157,7 @@ export default function App() {
           onPress: async () => {
             // Record loss for the abandoned game
             try {
-              const snapshot = await loadSavedGameSnapshot();
+              const snapshot = await loadSavedGameSnapshot('normal');
               if (snapshot && user) {
                 const now = Math.floor(Date.now() / 1000);
                 await saveGameResult({
@@ -170,6 +175,7 @@ export default function App() {
             }
             // @ts-ignore
             setGameDifficulty(difficulty);
+            setIsDailyChallenge(false);
             setGameMode('new');
             setScreen('game');
           },
@@ -178,6 +184,40 @@ export default function App() {
     } else {
       // @ts-ignore
       setGameDifficulty(difficulty);
+      setIsDailyChallenge(false);
+      setGameMode('new');
+      setScreen('game');
+    }
+  };
+
+  const handleStartDailyChallenge = () => {
+    if (canResumeDaily) {
+      Alert.alert(texts.daily.startAlertTitle, texts.daily.startAlertMessage, [
+        { text: texts.daily.startAlertCancel, style: 'cancel' },
+        {
+          text: texts.daily.startAlertStart,
+          onPress: async () => {
+            // Record loss logic for daily? Maybe not needed as strictly as normal games, but good for consistency.
+            // For now, just overwrite.
+            setGameDifficulty('medium');
+            setIsDailyChallenge(true);
+            setGameMode('new');
+            setScreen('game');
+          }
+        },
+        {
+          text: texts.home.continue, // "Resume" or "Continue"
+          onPress: () => {
+            setGameDifficulty('medium'); // Difficulty is loaded from save anyway
+            setIsDailyChallenge(true);
+            setGameMode('resume');
+            setScreen('game');
+          }
+        }
+      ]);
+    } else {
+      setGameDifficulty('medium');
+      setIsDailyChallenge(true);
       setGameMode('new');
       setScreen('game');
     }
@@ -185,6 +225,7 @@ export default function App() {
 
   const handleContinueGame = () => {
     setGameMode('resume');
+    setIsDailyChallenge(false); // Resume is usually for normal games. If we support daily resume, we need to store that flag in snapshot.
     setScreen('game');
   };
 
@@ -199,45 +240,50 @@ export default function App() {
 
   const handleStartTutorial = () => {
     setGameMode('tutorial');
+    setIsDailyChallenge(false);
     setScreen('game');
   };
 
-  return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#ffffff' }}>
-      <StatusBar barStyle="dark-content" />
-      {screen === 'splash' && (
-        <View style={styles.splashContainer}>
-          <Image source={splashArt} style={styles.splashImage} resizeMode="contain" />
-          <View style={styles.authContainer}>
-            {showLoginButtons && (
-              <>
-                <GoogleSigninButton
-                  size={GoogleSigninButton.Size.Wide}
-                  color={GoogleSigninButton.Color.Dark}
-                  onPress={handleGoogleSignIn}
-                  disabled={isSigningIn}
-                  style={styles.googleButton}
-                />
-
-                <Text style={styles.continueText} onPress={handleGuestContinue}>
-                  {isSigningIn ? 'Signing in...' : 'Continue as Guest'}
-                </Text>
-              </>
-            )}
-            {!showLoginButtons && <Text style={styles.guestText}>Initializing...</Text>}
-          </View>
+  if (screen === 'splash') {
+    // ... (splash render)
+    return (
+      <View style={styles.splashContainer}>
+        <Image source={splashArt} style={styles.splashImage} resizeMode="contain" />
+        <View style={styles.authContainer}>
+          {showLoginButtons && (
+            <>
+              <GoogleSigninButton
+                size={GoogleSigninButton.Size.Wide}
+                color={GoogleSigninButton.Color.Dark}
+                onPress={handleGoogleSignIn}
+                disabled={isSigningIn}
+                style={styles.googleButton}
+              />
+              <Text style={styles.continueText} onPress={handleGuestContinue}>
+                {isSigningIn ? 'Signing in...' : 'Continue as Guest'}
+              </Text>
+            </>
+          )}
+          {!showLoginButtons && <Text style={styles.guestText}>Initializing...</Text>}
         </View>
-      )}
+      </View>
+    );
+  }
+
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       {screen === 'home' && (
         <MainLayout
           onPressNewGame={handleStartNewGame}
           onPressContinue={canResume ? handleContinueGame : () => { }}
           onPressSettings={handleOpenSettings}
+          onPressDailyChallenge={handleStartDailyChallenge}
           continueAvailable={canResume}
           onGoHome={handleGoHome}
         />
       )}
-      {screen === 'game' && <SudokuScreen onGoHome={handleGoHome} mode={gameMode} difficulty={gameDifficulty} />}
+      {screen === 'game' && <SudokuScreen onGoHome={handleGoHome} mode={gameMode} difficulty={gameDifficulty} isDailyChallenge={isDailyChallenge} />}
       {screen === 'settings' && <SettingsScreen onGoBack={handleGoHome} onUserChanged={updateUserState} onStartTutorial={handleStartTutorial} />}
     </SafeAreaView>
   );

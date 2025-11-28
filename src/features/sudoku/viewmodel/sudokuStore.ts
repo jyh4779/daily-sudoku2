@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { getRandomPairByDifficulty, Pair } from '../data/PuzzleRepositorySqlite';
+import { getRandomPairByDifficulty, getDailyPuzzle, Pair } from '../data/PuzzleRepositorySqlite';
 import { AiHintResponse, fetchAiHint } from '../data/AiHintRepository';
 import { log, warn } from '../../../core/logger/log';
 import { appendFileLog } from '../../../core/logger/fileLogger';
@@ -33,12 +33,13 @@ type SudokuState = {
   hintsUsed: number;
   maxHints: number;
   hasLoadedGame: boolean;
+  isDailyChallenge: boolean;
 
   setSelected: (rc: RC | null) => void;
   setValue: (r: number, c: number, v: number) => void;
-  loadNewGame: (difficulty: 'beginner' | 'easy' | 'medium' | 'hard' | 'expert') => Promise<void>;
-  loadSavedGameFromDb: () => Promise<boolean>;
-  clearSavedProgress: () => Promise<void>;
+  loadNewGame: (difficulty: 'beginner' | 'easy' | 'medium' | 'hard' | 'expert', isDailyChallenge?: boolean, dateString?: string) => Promise<void>;
+  loadSavedGameFromDb: (isDailyChallenge?: boolean) => Promise<boolean>;
+  clearSavedProgress: (isDailyChallenge?: boolean) => Promise<void>;
 
   inputNumber: (n: number) => void;
   toggleNoteAtSelected: (n: number) => void;
@@ -57,21 +58,20 @@ type SudokuState = {
 
   // Pad-select input mode: tap a number, then tap a cell to input/note it
   padSelectMode?: boolean;
-  togglePadSelectMode?: () => void;
-  selectedPad?: number | null;
-  setSelectedPad?: (n: number | null) => void;
+  selectedPad: number | null;
+  togglePadSelectMode: () => void;
+  setSelectedPad: (n: number | null) => void;
 
-  // Tutorial state
-  tutorialHighlights: RC[] | null;
-  setTutorialHighlights: (highlights: RC[] | null) => void;
-  loadTutorialPuzzle: (puzzle: number[][], solution: number[][]) => void;
+  tutorialHighlights: any; // Define a proper type if possible, or use any for now
+  setTutorialHighlights: (highlights: any) => void;
 
-  // AI Hint
   aiHintLoading: boolean;
   aiHintResult: AiHintResponse | null;
   aiHintError: string | null;
   requestAiHint: () => Promise<void>;
   clearAiHint: () => void;
+
+  loadTutorialPuzzle: (puzzle: number[][], solution: number[][]) => void;
 };
 
 export const useSudokuStore = create<SudokuState>((set, get) => ({
@@ -89,6 +89,7 @@ export const useSudokuStore = create<SudokuState>((set, get) => ({
   hintsUsed: 0,
   maxHints: 2,
   hasLoadedGame: false,
+  isDailyChallenge: false,
   noteMode: false,
   toggleNoteMode: () => set(s => ({ noteMode: !s.noteMode })),
   padSelectMode: false,
@@ -357,50 +358,52 @@ export const useSudokuStore = create<SudokuState>((set, get) => ({
       if (last.peerNotePatches && last.peerNotePatches.length) {
         for (const p of last.peerNotePatches) {
           if (p.r >= 0 && p.r < 9 && p.c >= 0 && p.c < 9) {
-            notes[p.r][p.c] = p.prevNotes | 0;
+            notes[p.r][p.c] = p.prevNotes;
           }
         }
       }
       const stack = state.undoStack.slice(0, -1);
-      return { values: next, grid: next, notes, undoStack: stack };
+      return {
+        values: next,
+        grid: next,
+        notes,
+        undoStack: stack,
+        selected: { r: last.r, c: last.c },
+      };
     });
   },
 
-  // Reset only the mistakes counter
   resetMistakes: () => set({ mistakes: 0 }),
 
-  // Restart current puzzle from the beginning
-  restartCurrent: () =>
-    set(state => {
-      const vals = clone9(state.puzzle);
-      return {
-        values: vals,
-        grid: vals,
-        notes: empty9(),
-        selected: null,
-        mistakes: 0,
-        undoStack: [],
-        elapsedSec: 0,
-        hintsUsed: 0,
-        noteMode: false,
-        padSelectMode: false,
-        selectedPad: null,
-      };
-    }),
+  restartCurrent: () => {
+    const { puzzle } = get();
+    const vals = clone9(puzzle);
+    set({
+      values: vals,
+      grid: vals,
+      notes: empty9(),
+      selected: null,
+      mistakes: 0,
+      undoStack: [],
+      elapsedSec: 0,
+      hintsUsed: 0,
+      noteMode: false,
+      padSelectMode: false,
+      selectedPad: null,
+    });
+  },
 
-  loadNewGame: async (difficulty: 'beginner' | 'easy' | 'medium' | 'hard' | 'expert') => {
+  loadNewGame: async (difficulty, isDailyChallenge = false, dateString?: string) => {
     const applyPair = (pair: Pair) => {
-      const puz = to9x9(pair.puzzle);
-      const sol = to9x9(pair.solution);
-      const vals = clone9(puz);
+      const vals = clone9(pair.puzzle);
       set({
-        puzzle: puz,
-        solution: sol,
+        puzzle: pair.puzzle,
+        solution: pair.solution,
         values: vals,
         grid: vals,
         notes: empty9(),
         selected: null,
-        difficulty: difficulty,
+        difficulty: pair.meta.difficulty,
         mistakes: 0,
         undoStack: [],
         elapsedSec: 0,
@@ -410,17 +413,23 @@ export const useSudokuStore = create<SudokuState>((set, get) => ({
         padSelectMode: false,
         selectedPad: null,
         tutorialHighlights: null,
+        isDailyChallenge: !!isDailyChallenge,
       });
     };
 
-    await log('PUZZLE', 'load start', { from: 'sqlite', difficulty });
-    await appendFileLog('loadNewGame start', { difficulty });
+    await log('PUZZLE', 'load start', { from: 'sqlite', difficulty, isDailyChallenge });
+    await appendFileLog('loadNewGame start', { difficulty, isDailyChallenge });
 
     try {
-      const pair = await getRandomPairByDifficulty(difficulty);
+      let pair: Pair;
+      if (isDailyChallenge && dateString) {
+        pair = await getDailyPuzzle(dateString);
+      } else {
+        pair = await getRandomPairByDifficulty(difficulty);
+      }
       applyPair(pair);
-      await log('PUZZLE', 'load success (sqlite)', { id: pair.meta.id, difficulty: pair.meta.difficulty });
-      await appendFileLog('loadNewGame success sqlite', { id: pair.meta.id });
+      await log('PUZZLE', 'load success', { id: pair.meta.id, difficulty: pair.meta.difficulty });
+      await appendFileLog('loadNewGame success', { id: pair.meta.id });
     } catch (e: any) {
       const z = empty9();
       set({
@@ -437,19 +446,16 @@ export const useSudokuStore = create<SudokuState>((set, get) => ({
         noteMode: false,
         padSelectMode: false,
         selectedPad: null,
+        isDailyChallenge: false,
       });
-      await warn('PUZZLE', 'load failed', {
-        error: String(e?.message ?? e),
-      });
-      await appendFileLog('loadNewGame failed', {
-        error: String(e?.message ?? e),
-      });
+      await warn('PUZZLE', 'load failed', { error: String(e?.message ?? e) });
+      await appendFileLog('loadNewGame failed', { error: String(e?.message ?? e) });
     }
   },
 
-  loadSavedGameFromDb: async () => {
+  loadSavedGameFromDb: async (isDailyChallenge: boolean = false) => {
     try {
-      const snapshot = await loadSavedGameSnapshot();
+      const snapshot = await loadSavedGameSnapshot(isDailyChallenge ? 'daily' : 'normal');
       if (!snapshot) return false;
       const values = to9x9(snapshot.values as number[][]);
       set({
@@ -469,6 +475,7 @@ export const useSudokuStore = create<SudokuState>((set, get) => ({
         padSelectMode: snapshot.padSelectMode ?? false,
         selectedPad: snapshot.selectedPad ?? null,
         hasLoadedGame: true,
+        isDailyChallenge: !!snapshot.isDailyChallenge,
       });
       return true;
     } catch (e) {
@@ -477,9 +484,9 @@ export const useSudokuStore = create<SudokuState>((set, get) => ({
     }
   },
 
-  clearSavedProgress: async () => {
+  clearSavedProgress: async (isDailyChallenge: boolean = false) => {
     try {
-      await clearSavedGameSnapshot();
+      await clearSavedGameSnapshot(isDailyChallenge ? 'daily' : 'normal');
     } catch (e) {
       await warn('PUZZLE', 'clear saved failed', { error: String((e as Error).message) });
     }
@@ -503,6 +510,7 @@ const toSnapshot = (state: SudokuState) => ({
   noteMode: !!state.noteMode,
   padSelectMode: !!state.padSelectMode,
   selectedPad: state.selectedPad ?? null,
+  isDailyChallenge: state.isDailyChallenge,
 });
 
 let hasSetupPersistence = false;
@@ -510,7 +518,8 @@ if (!hasSetupPersistence) {
   hasSetupPersistence = true;
   useSudokuStore.subscribe(state => {
     if (!state.hasLoadedGame) return;
-    void saveSavedGameSnapshot(toSnapshot(state)).catch(err => {
+    const type = state.isDailyChallenge ? 'daily' : 'normal';
+    void saveSavedGameSnapshot(toSnapshot(state), type).catch(err => {
       console.warn('Failed to save sudoku progress', err);
     });
   });

@@ -8,6 +8,7 @@ type HomeScreenProps = {
   onPressContinue?: () => void;
   onPressStats?: () => void;
   onPressSettings?: () => void;
+  onPressDaily?: () => void;
   continueAvailable?: boolean;
 };
 
@@ -18,6 +19,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   onPressContinue,
   onPressStats,
   onPressSettings,
+  onPressDaily,
   continueAvailable = false,
 }) => {
   const texts = useTexts();
@@ -54,6 +56,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
 
   const buttons = [
     { label: texts.home.newGame, icon: '+', color: '#f4b2cf', onPress: () => setShowDifficultyModal(true), disabled: false },
+    { label: 'Daily Challenge', icon: '🔥', color: '#ff6b6b', onPress: onPressDaily, disabled: false },
     { label: texts.home.continue, icon: '▶', color: '#b8e6ff', onPress: onPressContinue, disabled: !continueAvailable },
     { label: texts.home.settings, icon: '⚙', color: '#ffd8ad', onPress: onPressSettings, disabled: false },
   ];

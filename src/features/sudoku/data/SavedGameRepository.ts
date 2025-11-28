@@ -1,7 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Difficulty } from './PuzzleRepositorySqlite';
 
-const STORAGE_KEY = '@dailysudoku/savedGame';
+const STORAGE_KEY_NORMAL = '@dailysudoku/savedGame';
+const STORAGE_KEY_DAILY = '@dailysudoku/savedGame_daily';
 
 const emptyGrid = () => Array.from({ length: 9 }, () => Array(9).fill(0));
 const parseGrid = (payload: string | null | undefined) => {
@@ -40,9 +41,11 @@ export type SavedGameSnapshot = {
   selectedPad: number | null;
   hintsUsed: number;
   savedAt?: number;
+  isDailyChallenge?: boolean;
 };
 
-export async function saveSavedGameSnapshot(snapshot: SavedGameSnapshot) {
+export async function saveSavedGameSnapshot(snapshot: SavedGameSnapshot, type: 'normal' | 'daily' = 'normal') {
+  const key = type === 'daily' ? STORAGE_KEY_DAILY : STORAGE_KEY_NORMAL;
   const payload = JSON.stringify({
     puzzle_json: JSON.stringify(snapshot.puzzle ?? emptyGrid()),
     solution_json: JSON.stringify(snapshot.solution ?? emptyGrid()),
@@ -58,12 +61,14 @@ export async function saveSavedGameSnapshot(snapshot: SavedGameSnapshot) {
     selected_pad: snapshot.selectedPad ?? null,
     hints_used: snapshot.hintsUsed ?? 0,
     saved_at: Date.now(),
+    is_daily_challenge: type === 'daily',
   });
-  await AsyncStorage.setItem(STORAGE_KEY, payload);
+  await AsyncStorage.setItem(key, payload);
 }
 
-export async function loadSavedGameSnapshot(): Promise<SavedGameSnapshot | null> {
-  const stored = await AsyncStorage.getItem(STORAGE_KEY);
+export async function loadSavedGameSnapshot(type: 'normal' | 'daily' = 'normal'): Promise<SavedGameSnapshot | null> {
+  const key = type === 'daily' ? STORAGE_KEY_DAILY : STORAGE_KEY_NORMAL;
+  const stored = await AsyncStorage.getItem(key);
   if (!stored) return null;
   const row = JSON.parse(stored) as {
     puzzle_json: string;
@@ -80,6 +85,7 @@ export async function loadSavedGameSnapshot(): Promise<SavedGameSnapshot | null>
     selected_pad: number | null;
     hints_used: number;
     saved_at: number;
+    is_daily_challenge?: boolean;
   };
   return {
     puzzle: parseGrid(row.puzzle_json),
@@ -96,14 +102,17 @@ export async function loadSavedGameSnapshot(): Promise<SavedGameSnapshot | null>
     selectedPad: row.selected_pad ?? null,
     hintsUsed: Number(row.hints_used) || 0,
     savedAt: row.saved_at,
+    isDailyChallenge: !!row.is_daily_challenge,
   };
 }
 
-export async function hasSavedGameSnapshot(): Promise<boolean> {
-  const stored = await AsyncStorage.getItem(STORAGE_KEY);
+export async function hasSavedGameSnapshot(type: 'normal' | 'daily' = 'normal'): Promise<boolean> {
+  const key = type === 'daily' ? STORAGE_KEY_DAILY : STORAGE_KEY_NORMAL;
+  const stored = await AsyncStorage.getItem(key);
   return stored !== null;
 }
 
-export async function clearSavedGameSnapshot() {
-  await AsyncStorage.removeItem(STORAGE_KEY);
+export async function clearSavedGameSnapshot(type: 'normal' | 'daily' = 'normal') {
+  const key = type === 'daily' ? STORAGE_KEY_DAILY : STORAGE_KEY_NORMAL;
+  await AsyncStorage.removeItem(key);
 }

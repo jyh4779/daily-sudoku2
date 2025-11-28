@@ -1,4 +1,4 @@
-import { GEMINI_API_KEY } from '../../../config/api';
+import { OPENAI_API_KEY } from '../../../config/api';
 import { useLanguageStore } from '../../settings/store/languageStore';
 
 export interface AiHintResponse {
@@ -9,8 +9,8 @@ export interface AiHintResponse {
 }
 
 export const fetchAiHint = async (board: number[][]): Promise<AiHintResponse> => {
-    if (!GEMINI_API_KEY) {
-        throw new Error('Gemini API Key is missing. Please check src/config/api.ts');
+    if (!OPENAI_API_KEY) {
+        throw new Error('OpenAI API Key is missing. Please check src/config/api.ts');
     }
 
     const language = useLanguageStore.getState().language;
@@ -25,45 +25,56 @@ export const fetchAiHint = async (board: number[][]): Promise<AiHintResponse> =>
     Board:
     ${JSON.stringify(board)}
 
-    ${langInstruction}
-    
+    IMPORTANT:
+    - ${langInstruction}
+    - The "r" and "c" fields in the JSON response must be 0-indexed (0-8).
+    - However, in the "reasoning" text, you MUST refer to Rows and Columns using 1-based indexing (Row 1-9, Column 1-9) to be user-friendly.
+    - For example, if you return "r": 0, "c": 0, the reasoning should say "Row 1, Column 1".
+    - Ensure the reasoning text matches the coordinates in "r" and "c".
+    - **REASONING QUALITY**:
+      - Do NOT hallucinate. Verify every fact (e.g., "Row 1 has a 7") against the board before stating it.
+      - Use clear logic: "Row 2 needs a 7. It cannot be in Col 6 because Row 9 Col 6 is 7..."
+      - Explain *why* other candidates are impossible if applicable.
+
     Return ONLY a JSON object with the following format (no markdown, no code blocks):
     {
       "r": number (0-8, row index),
       "c": number (0-8, column index),
       "value": number (1-9),
-      "reasoning": "string (Explain why this number must go here. Be concise but logical. Mention specific rows, columns, or boxes.)"
+      "reasoning": "string (Explain why this number must go here. Be concise but logical. Mention specific rows, columns, or boxes using 1-9 indexing.)"
     }
   `;
 
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${OPENAI_API_KEY}`
             },
             body: JSON.stringify({
-                contents: [{
-                    parts: [{ text: prompt }]
-                }]
+                model: "gpt-4o",
+                messages: [
+                    { role: "system", content: `You are a helpful Sudoku assistant. You always return valid JSON. ${langInstruction}` },
+                    { role: "user", content: prompt }
+                ],
+                response_format: { type: "json_object" }
             })
         });
 
         if (!response.ok) {
             const errText = await response.text();
-            throw new Error(`Gemini API Error: ${response.status} - ${errText}`);
+            throw new Error(`OpenAI API Error: ${response.status} - ${errText}`);
         }
 
         const data = await response.json();
-        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        const content = data.choices?.[0]?.message?.content;
 
-        if (!text) {
+        if (!content) {
             throw new Error('No response from AI');
         }
 
-        // Clean up markdown code blocks if present
-        const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
-        const result = JSON.parse(jsonStr) as AiHintResponse;
+        const result = JSON.parse(content) as AiHintResponse;
 
         // Validate result
         if (typeof result.r !== 'number' || typeof result.c !== 'number' || typeof result.value !== 'number' || !result.reasoning) {
@@ -74,27 +85,6 @@ export const fetchAiHint = async (board: number[][]): Promise<AiHintResponse> =>
 
     } catch (error: any) {
         console.error('AI Hint Error:', error);
-
-        // Debugging: Try to list models to see what's available
-        try {
-            console.log('Attempting to list models...');
-            const listResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_API_KEY}`);
-            const listData = await listResponse.json();
-            console.log('Available Models:', JSON.stringify(listData, null, 2));
-
-            if (listData.error) {
-                throw new Error(`ListModels failed: ${listData.error.message}`);
-            }
-
-            if (listData.models) {
-                const modelNames = listData.models.map((m: any) => m.name).join(', ');
-                throw new Error(`Model not found. Available models: ${modelNames}`);
-            }
-        } catch (listError: any) {
-            console.error('ListModels Error:', listError);
-            throw new Error(`Gemini API Error: ${error.message} (Also failed to list models: ${listError.message})`);
-        }
-
         throw error;
     }
 };
