@@ -1,5 +1,6 @@
 import { getDb } from '../../../core/db/sqlite';
 import { log, warn } from '../../../core/logger/log';
+import { seededRandom } from '../../../core/utils/seededRandom';
 
 export type Difficulty = 'beginner' | 'easy' | 'medium' | 'hard' | 'expert';
 export type Grid = number[][];
@@ -64,31 +65,71 @@ export async function getRandomPairByDifficulty(diff: Difficulty): Promise<Pair>
   }
 }
 
-import { seededRandom } from '../../../core/utils/seededRandom';
-
 export async function getDailyPuzzle(dateString: string): Promise<Pair> {
   const db = await getDb();
-  // Fixed difficulty for Daily Challenge: Medium (2)
-  const diff = 'medium';
-  const diffInt = 2;
-
   await log('PUZZLE', 'getDailyPuzzle start', { dateString });
 
   try {
-    // 1. Get total count of medium puzzles
+    // 1. Try to get from daily_schedule
+    try {
+      const [scheduleRes] = await db.executeSql(`SELECT puzzle_id, difficulty_str FROM daily_schedule WHERE date = ?`, [dateString]);
+
+      if (scheduleRes.rows.length > 0) {
+        const scheduleRow = scheduleRes.rows.item(0);
+        const puzzleId = scheduleRow.puzzle_id;
+        const diffStr = scheduleRow.difficulty_str as Difficulty;
+
+        await log('PUZZLE', 'found in daily_schedule', { dateString, puzzleId, diffStr });
+
+        const [puzzleRes] = await db.executeSql(`SELECT id, puzzle, solution FROM puzzles WHERE id = ?`, [puzzleId]);
+        if (puzzleRes.rows.length > 0) {
+          const row = puzzleRes.rows.item(0);
+          return {
+            puzzle: toGrid(row.puzzle),
+            solution: toGrid(row.solution),
+            meta: { id: row.id, difficulty: diffStr },
+          };
+        } else {
+          await warn('PUZZLE', 'scheduled puzzle not found in puzzles table', { puzzleId });
+          // Fallback to random generation
+        }
+      } else {
+        await log('PUZZLE', 'not found in daily_schedule, using fallback', { dateString });
+      }
+    } catch (tableError) {
+      await warn('PUZZLE', 'daily_schedule table query failed (likely missing), using fallback', { error: String(tableError) });
+    }
+
+    // 2. Fallback: Generate based on rules
+    const date = new Date(dateString);
+    const day = date.getDay(); // 0=Sun, 1=Mon...
+
+    let diff: Difficulty = 'medium';
+    let diffInt = 2;
+
+    if (day === 0) { // Sun
+      diff = 'expert';
+      diffInt = 4;
+    } else if (day >= 1 && day <= 3) { // Mon-Wed
+      diff = 'beginner';
+      diffInt = 0;
+    } else { // Thu-Sat
+      diff = 'medium';
+      diffInt = 2;
+    }
+
+    // Get total count
     const [countRes] = await db.executeSql(`SELECT count(*) as c FROM puzzles WHERE difficulty = ?`, [diffInt]);
     const totalCount = countRes.rows.item(0).c;
 
     if (totalCount === 0) {
-      throw new Error('No medium puzzles found for daily challenge');
+      throw new Error(`No puzzles found for difficulty ${diff} in fallback`);
     }
 
-    // 2. Generate seeded random index
+    // Generate seeded random index
     const rng = seededRandom(dateString);
     const randomIndex = Math.floor(rng() * totalCount);
 
-    // 3. Fetch the puzzle at that index
-    // Note: LIMIT 1 OFFSET N is standard for picking a specific row
     const query = `SELECT id, puzzle, solution, difficulty FROM puzzles WHERE difficulty = ? LIMIT 1 OFFSET ?`;
     const [res] = await db.executeSql(query, [diffInt, randomIndex]);
 
@@ -97,7 +138,7 @@ export async function getDailyPuzzle(dateString: string): Promise<Pair> {
     }
 
     const row = res.rows.item(0);
-    await log('PUZZLE', 'daily puzzle picked', { id: row.id, dateString, index: randomIndex });
+    await log('PUZZLE', 'daily puzzle picked (fallback)', { id: row.id, dateString, index: randomIndex, difficulty: diff });
 
     return {
       puzzle: toGrid(row.puzzle),
@@ -130,8 +171,8 @@ async function debugDbStatus(db: any) {
     } else {
       await warn('DB_DEBUG', 'puzzles table missing!');
     }
-  } catch (e) {
-    await warn('DB_DEBUG', 'Failed to check DB status', e);
+  } catch (e: any) {
+    await warn('DB_DEBUG', 'Failed to check DB status', { error: String(e?.message ?? e) });
   }
 }
 
@@ -141,5 +182,3 @@ export async function getRandomFromTable(table: Difficulty | 'euler'): Promise<P
   if (table === 'euler') throw new Error('Euler table not supported in new schema');
   return getRandomPairByDifficulty(table as Difficulty);
 }
-
-

@@ -58,21 +58,24 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode, difficulty 
 
   }, []);
 
+  const dailyDate = useSudokuStore(s => s.dailyDate);
+
   useEffect(() => {
     let isMounted = true;
     const bootstrap = async () => {
       try {
+        const today = new Date().toISOString().split('T')[0];
+        const targetDate = isDailyChallenge ? (dailyDate ?? today) : undefined;
+
         if (mode === 'resume') {
-          const loaded = await loadSavedGameFromDb(isDailyChallenge);
+          const loaded = await loadSavedGameFromDb(isDailyChallenge, targetDate);
           if (!loaded) {
-            const today = new Date().toISOString().split('T')[0];
-            await loadNewGame(difficulty, isDailyChallenge, today);
+            await loadNewGame(difficulty, isDailyChallenge, targetDate || today);
           }
         } else if (mode === 'tutorial') {
           loadTutorialPuzzle(TUTORIAL_PUZZLE_60, TUTORIAL_SOLUTION);
         } else {
-          const today = new Date().toISOString().split('T')[0];
-          await loadNewGame(difficulty, isDailyChallenge, today);
+          await loadNewGame(difficulty, isDailyChallenge, targetDate || today);
         }
       } catch (e) {
         console.error(e);
@@ -84,7 +87,7 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode, difficulty 
     return () => {
       isMounted = false;
     };
-  }, [mode, difficulty, isDailyChallenge, loadNewGame, loadSavedGameFromDb, loadTutorialPuzzle]);
+  }, [mode, difficulty, isDailyChallenge, loadNewGame, loadSavedGameFromDb, loadTutorialPuzzle, dailyDate]);
 
   const onLayoutBoardArea = (e: LayoutChangeEvent) => {
     const { width: w, height: h } = e.nativeEvent.layout;
@@ -180,7 +183,10 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode, difficulty 
       const user = getCurrentUser();
       if (user) {
         const endTime = Date.now();
-        const durationSeconds = Math.floor((endTime - startTime) / 1000);
+        // Use elapsedSec from store for accurate total duration across sessions
+        const durationSeconds = elapsedSec;
+
+        const puzzleDate = dailyDate ?? new Date().toISOString().split('T')[0];
 
         saveGameResult({
           userId: user.uid,
@@ -190,6 +196,7 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode, difficulty 
           endTime: Math.floor(endTime / 1000),
           durationSeconds: durationSeconds,
           result: isSolved ? 'win' : 'loss',
+          dailyPuzzleDate: isDailyChallenge ? puzzleDate : undefined,
         }, undefined, isDailyChallenge).catch(err => console.warn('Failed to save game result', err));
       }
       void (clearSavedProgress?.(isDailyChallenge) ?? Promise.resolve());
@@ -307,9 +314,11 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode, difficulty 
                 </View>
               ) : (
                 <View style={styles.modalBtns}>
-                  <Pressable style={styles.modalBtn} onPress={handleNewGame}>
-                    <Text style={styles.modalBtnText}>{texts.game.overlayButtons.newGame}</Text>
-                  </Pressable>
+                  {!isDailyChallenge && (
+                    <Pressable style={styles.modalBtn} onPress={handleNewGame}>
+                      <Text style={styles.modalBtnText}>{texts.game.overlayButtons.newGame}</Text>
+                    </Pressable>
+                  )}
                   <Pressable style={styles.modalBtn} onPress={handleGoHome}>
                     <Text style={styles.modalBtnText}>{texts.game.overlayButtons.home}</Text>
                   </Pressable>

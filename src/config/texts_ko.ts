@@ -45,12 +45,14 @@ export const TEXTS_KO: TextResources = {
             medium: '중급자',
             hard: '고급자',
             expert: '전문가',
+            daily: '매일',
         },
         lockMessage: {
-            easy: '입문자 난이도 3회 성공 시 해금',
-            medium: '초보자 난이도 5회 성공 시 해금',
-            hard: '중급자 난이도 7회 성공 시 해금',
-            expert: '고급자 난이도 10회 성공 시 해금',
+            easy: '입문자 난이도 3회 성공 시 열립니다',
+            medium: '초보자 난이도 5회 성공 시 열립니다',
+            hard: '중급자 난이도 7회 성공 시 열립니다',
+            expert: '고급자 난이도 10회 성공 시 열립니다',
+            unlockCondition: (difficulty: string, remaining: number) => `${difficulty} 난이도 ${remaining}회 더 성공 시 해금`,
         },
         overlayTitle: {
             pause: '일시정지',

@@ -48,25 +48,25 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   }, []);
 
   const getLockStatus = (diff: string) => {
-    if (!userStats) return { locked: false, message: '' };
+    if (!userStats) return { locked: false, message: '', remaining: 0, requiredDiff: '' };
 
     const counts = userStats.completedCounts;
 
     switch (diff) {
       case 'easy':
-        if (counts.beginner < 3) return { locked: true, message: texts.game.lockMessage.easy };
+        if (counts.beginner < 3) return { locked: true, message: texts.game.lockMessage.easy, remaining: 3 - counts.beginner, requiredDiff: 'beginner' };
         break;
       case 'medium':
-        if (counts.easy < 5) return { locked: true, message: texts.game.lockMessage.medium };
+        if (counts.easy < 5) return { locked: true, message: texts.game.lockMessage.medium, remaining: 5 - counts.easy, requiredDiff: 'easy' };
         break;
       case 'hard':
-        if (counts.medium < 7) return { locked: true, message: texts.game.lockMessage.hard };
+        if (counts.medium < 7) return { locked: true, message: texts.game.lockMessage.hard, remaining: 7 - counts.medium, requiredDiff: 'medium' };
         break;
       case 'expert':
-        if (counts.hard < 10) return { locked: true, message: texts.game.lockMessage.expert };
+        if (counts.hard < 10) return { locked: true, message: texts.game.lockMessage.expert, remaining: 10 - counts.hard, requiredDiff: 'hard' };
         break;
     }
-    return { locked: false, message: '' };
+    return { locked: false, message: '', remaining: 0, requiredDiff: '' };
   };
 
   React.useEffect(() => {
@@ -150,7 +150,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
             <Text style={styles.modalTitle}>{texts.home.newGame}</Text>
             <View style={styles.difficultyList}>
               {(['beginner', 'easy', 'medium', 'hard', 'expert'] as const).map(diff => {
-                const { locked, message } = getLockStatus(diff);
+                const { locked, message, remaining, requiredDiff } = getLockStatus(diff);
                 return (
                   <TouchableOpacity
                     key={diff}
@@ -164,9 +164,17 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
                       }
                     }}
                   >
-                    <Text style={[styles.difficultyButtonText, locked && styles.difficultyButtonTextLocked]}>
-                      {texts.game.difficulty[diff]} {locked && '🔒'}
-                    </Text>
+                    <View style={{ alignItems: 'center' }}>
+                      <Text style={[styles.difficultyButtonText, locked && styles.difficultyButtonTextLocked]}>
+                        {texts.game.difficulty[diff]} {locked && '🔒'}
+                      </Text>
+                      {locked && remaining > 0 && requiredDiff && (
+                        <Text style={styles.difficultyLockSubtext}>
+                          {/* @ts-ignore */}
+                          {texts.game.lockMessage.unlockCondition(texts.game.difficulty[requiredDiff], remaining)}
+                        </Text>
+                      )}
+                    </View>
                   </TouchableOpacity>
                 );
               })}
@@ -307,5 +315,11 @@ const styles = StyleSheet.create({
   },
   difficultyButtonTextLocked: {
     color: '#888',
+  },
+  difficultyLockSubtext: {
+    fontSize: 12,
+    color: '#999',
+    marginTop: 4,
+    fontWeight: '500',
   },
 });

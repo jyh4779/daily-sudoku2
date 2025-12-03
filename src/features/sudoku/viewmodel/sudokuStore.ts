@@ -40,8 +40,8 @@ type SudokuState = {
   setSelected: (rc: RC | null) => void;
   setValue: (r: number, c: number, v: number) => void;
   loadNewGame: (difficulty: 'beginner' | 'easy' | 'medium' | 'hard' | 'expert', isDailyChallenge?: boolean, dateString?: string) => Promise<void>;
-  loadSavedGameFromDb: (isDailyChallenge?: boolean) => Promise<boolean>;
-  clearSavedProgress: (isDailyChallenge?: boolean) => Promise<void>;
+  loadSavedGameFromDb: (isDailyChallenge?: boolean, targetDate?: string) => Promise<boolean>;
+  clearSavedProgress: (isDailyChallenge?: boolean, targetDate?: string) => Promise<void>;
 
   inputNumber: (n: number) => void;
   toggleNoteAtSelected: (n: number) => void;
@@ -66,6 +66,9 @@ type SudokuState = {
 
   tutorialHighlights: any; // Define a proper type if possible, or use any for now
   setTutorialHighlights: (highlights: any) => void;
+
+  dailyDate: string | null;
+  setDailyDate: (date: string | null) => void;
 
   aiHintLoading: boolean;
   aiHintResult: AiHintResponse | null;
@@ -101,6 +104,9 @@ export const useSudokuStore = create<SudokuState>((set, get) => ({
 
   tutorialHighlights: null,
   setTutorialHighlights: (highlights) => set({ tutorialHighlights: highlights }),
+
+  dailyDate: null,
+  setDailyDate: (date) => set({ dailyDate: date }),
 
   // AI Hint
   aiHintLoading: false,
@@ -463,10 +469,20 @@ export const useSudokuStore = create<SudokuState>((set, get) => ({
     }
   },
 
-  loadSavedGameFromDb: async (isDailyChallenge: boolean = false) => {
+  loadSavedGameFromDb: async (isDailyChallenge: boolean = false, targetDate?: string) => {
     try {
-      const snapshot = await loadSavedGameSnapshot(isDailyChallenge ? 'daily' : 'normal');
+      // If daily challenge, use targetDate or current store's dailyDate
+      const dateToUse = isDailyChallenge ? (targetDate ?? get().dailyDate ?? undefined) : undefined;
+
+      const snapshot = await loadSavedGameSnapshot(isDailyChallenge ? 'daily' : 'normal', dateToUse);
       if (!snapshot) return false;
+
+      // Extra check: if we requested a specific date, ensure the snapshot matches
+      if (isDailyChallenge && targetDate && snapshot.dailyDate !== targetDate) {
+        console.log('Snapshot date mismatch', snapshot.dailyDate, targetDate);
+        return false;
+      }
+
       const values = to9x9(snapshot.values as number[][]);
       const solution = to9x9(snapshot.solution as number[][]);
       const mistakes = snapshot.mistakes ?? 0;
@@ -487,7 +503,7 @@ export const useSudokuStore = create<SudokuState>((set, get) => ({
 
       if (isWon || isLost) {
         console.log('Discarding completed saved game');
-        await clearSavedGameSnapshot(isDailyChallenge ? 'daily' : 'normal');
+        await clearSavedGameSnapshot(isDailyChallenge ? 'daily' : 'normal', dateToUse);
         return false;
       }
 
@@ -509,6 +525,7 @@ export const useSudokuStore = create<SudokuState>((set, get) => ({
         selectedPad: snapshot.selectedPad ?? null,
         hasLoadedGame: true,
         isDailyChallenge: !!snapshot.isDailyChallenge,
+        dailyDate: snapshot.dailyDate ?? null,
       });
       return true;
     } catch (e) {
@@ -517,9 +534,10 @@ export const useSudokuStore = create<SudokuState>((set, get) => ({
     }
   },
 
-  clearSavedProgress: async (isDailyChallenge: boolean = false) => {
+  clearSavedProgress: async (isDailyChallenge: boolean = false, targetDate?: string) => {
     try {
-      await clearSavedGameSnapshot(isDailyChallenge ? 'daily' : 'normal');
+      const dateToUse = isDailyChallenge ? (targetDate ?? get().dailyDate ?? undefined) : undefined;
+      await clearSavedGameSnapshot(isDailyChallenge ? 'daily' : 'normal', dateToUse);
       set({ hasLoadedGame: false }); // Stop auto-save
     } catch (e) {
       await warn('PUZZLE', 'clear saved failed', { error: String((e as Error).message) });
@@ -545,6 +563,7 @@ const toSnapshot = (state: SudokuState) => ({
   padSelectMode: !!state.padSelectMode,
   selectedPad: state.selectedPad ?? null,
   isDailyChallenge: state.isDailyChallenge,
+  dailyDate: state.dailyDate ?? undefined,
 });
 
 const isGameCompleted = (state: SudokuState) => {
@@ -572,7 +591,9 @@ if (!hasSetupPersistence) {
     if (isGameCompleted(state)) return;
 
     const type = state.isDailyChallenge ? 'daily' : 'normal';
-    void saveSavedGameSnapshot(toSnapshot(state), type).catch(err => {
+    const dateString = state.isDailyChallenge ? (state.dailyDate ?? undefined) : undefined;
+
+    void saveSavedGameSnapshot(toSnapshot(state), type, dateString).catch(err => {
       console.warn('Failed to save sudoku progress', err);
     });
   });

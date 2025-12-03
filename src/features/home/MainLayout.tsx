@@ -14,7 +14,7 @@ type MainLayoutProps = {
     onPressNewGame: (difficulty: string) => void;
     onPressContinue: () => void;
     onPressSettings: () => void;
-    onPressDailyChallenge: () => void;
+    onPressDailyChallenge: (date: string) => void;
     continueAvailable: boolean;
     onGoHome: () => void; // Used for back navigation from other screens if needed
 };

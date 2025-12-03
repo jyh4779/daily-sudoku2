@@ -27,7 +27,7 @@ export default function App() {
   const [screen, setScreen] = useState<ScreenState>('splash');
   const [gameMode, setGameMode] = useState<'new' | 'resume' | 'tutorial'>('new');
   const [canResume, setCanResume] = useState(false);
-  const [canResumeDaily, setCanResumeDaily] = useState(false);
+  // canResumeDaily removed as we check dynamically
   const [user, setUser] = useState<AppUser | null>(null);
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [showLoginButtons, setShowLoginButtons] = useState(false);
@@ -126,9 +126,6 @@ export default function App() {
     void hasSavedGameSnapshot('normal')
       .then(setCanResume)
       .catch(() => setCanResume(false));
-    void hasSavedGameSnapshot('daily')
-      .then(setCanResumeDaily)
-      .catch(() => setCanResumeDaily(false));
   }, []);
 
   useEffect(() => {
@@ -210,8 +207,10 @@ export default function App() {
     }
   };
 
-  const handleStartDailyChallenge = () => {
-    if (canResumeDaily) {
+  const handleStartDailyChallenge = async (dateString: string) => {
+    const hasSave = await hasSavedGameSnapshot('daily', dateString);
+
+    if (hasSave) {
       Alert.alert(texts.daily.startAlertTitle, texts.daily.startAlertMessage, [
         { text: texts.daily.startAlertCancel, style: 'cancel' },
         {

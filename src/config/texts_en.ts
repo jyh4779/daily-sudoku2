@@ -49,6 +49,7 @@ export const TEXTS_EN = {
             medium: 'Win 5 Easy games to unlock',
             hard: 'Win 7 Medium games to unlock',
             expert: 'Win 10 Hard games to unlock',
+            unlockCondition: (difficulty: string, remaining: number) => `Win ${remaining} more ${difficulty} game${remaining > 1 ? 's' : ''} to unlock`,
         },
         overlayTitle: {
             pause: 'Pause',

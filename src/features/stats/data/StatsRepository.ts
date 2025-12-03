@@ -12,11 +12,12 @@ export interface GameResult {
     endTime: number;   // Unix timestamp (seconds)
     durationSeconds: number;
     result: 'win' | 'loss';
+    dailyPuzzleDate?: string;
 }
 
 export interface UserStats {
-    userId: string; // Added for leaderboard
-    displayName?: string; // Added for leaderboard
+    userId: string;
+    displayName?: string;
     gamesPlayed: number;
     wins: number;
     losses: number;
@@ -55,6 +56,19 @@ export interface UserStats {
         medium: number;
         hard: number;
         expert: number;
+    };
+    // New fields for difficulty-specific stats
+    difficultyStreaks: {
+        [key in Difficulty]: {
+            current: number;
+            best: number;
+        };
+    };
+    totalTimes: {
+        [key in Difficulty]: number;
+    };
+    averageTimes: {
+        [key in Difficulty]: number;
     };
 }
 
@@ -98,23 +112,32 @@ const DEFAULT_STATS: UserStats = {
         hard: 0,
         expert: 0,
     },
+    difficultyStreaks: {
+        beginner: { current: 0, best: 0 },
+        easy: { current: 0, best: 0 },
+        medium: { current: 0, best: 0 },
+        hard: { current: 0, best: 0 },
+        expert: { current: 0, best: 0 },
+    },
+    totalTimes: {
+        beginner: 0,
+        easy: 0,
+        medium: 0,
+        hard: 0,
+        expert: 0,
+    },
+    averageTimes: {
+        beginner: 0,
+        easy: 0,
+        medium: 0,
+        hard: 0,
+        expert: 0,
+    },
 };
 
 const GAMES_COLLECTION = 'games_v2';
 const USER_STATS_COLLECTION = 'user_stats_v2';
-const LEADERBOARD_DAILY_COLLECTION = 'leaderboard_daily';
-const LEADERBOARD_WEEKLY_COLLECTION = 'leaderboard_weekly';
 const DAILY_CHALLENGE_LEADERBOARD_COLLECTION = 'daily_challenge_leaderboard';
-
-// Helper to get ISO week number
-const getWeekNumber = (d: Date): string => {
-    const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-    const dayNum = date.getUTCDay() || 7;
-    date.setUTCDate(date.getUTCDate() + 4 - dayNum);
-    const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
-    const weekNo = Math.ceil((((date.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
-    return `${date.getUTCFullYear()}-W${weekNo.toString().padStart(2, '0')}`;
-};
 
 const getDailyKey = (d: Date): string => {
     return d.toISOString().split('T')[0]; // YYYY-MM-DD
@@ -126,10 +149,7 @@ export const updateUserNickname = async (userId: string, nickname: string) => {
 
     const now = new Date();
     const dailyKey = getDailyKey(now);
-    const weeklyKey = getWeekNumber(now);
 
-    const dailyStatsRef = doc(db, LEADERBOARD_DAILY_COLLECTION, `${dailyKey}_${userId}`);
-    const weeklyStatsRef = doc(db, LEADERBOARD_WEEKLY_COLLECTION, `${weeklyKey}_${userId}`);
     const dailyChallengeRef = doc(db, DAILY_CHALLENGE_LEADERBOARD_COLLECTION, `${dailyKey}_${userId}`);
 
     try {
@@ -145,19 +165,7 @@ export const updateUserNickname = async (userId: string, nickname: string) => {
                 transaction.update(userStatsRef, { displayName: nickname });
             }
 
-            // 2. Update Daily Leaderboard (if exists)
-            const dailyStatsDoc = await transaction.get(dailyStatsRef);
-            if (dailyStatsDoc.exists()) {
-                transaction.update(dailyStatsRef, { displayName: nickname });
-            }
-
-            // 3. Update Weekly Leaderboard (if exists)
-            const weeklyStatsDoc = await transaction.get(weeklyStatsRef);
-            if (weeklyStatsDoc.exists()) {
-                transaction.update(weeklyStatsRef, { displayName: nickname });
-            }
-
-            // 4. Update Daily Challenge Leaderboard (if exists)
+            // 2. Update Daily Challenge Leaderboard (if exists)
             const dailyChallengeDoc = await transaction.get(dailyChallengeRef);
             if (dailyChallengeDoc.exists()) {
                 transaction.update(dailyChallengeRef, { displayName: nickname });
@@ -176,6 +184,10 @@ const updateStatsObject = (stats: UserStats, gameResult: GameResult, userDisplay
     // Migration/Init for new fields
     if (!stats.gamesPlayedCounts) stats.gamesPlayedCounts = { ...DEFAULT_STATS.gamesPlayedCounts };
     if (!stats.winRates) stats.winRates = { ...DEFAULT_STATS.winRates };
+    if (!stats.difficultyStreaks) stats.difficultyStreaks = JSON.parse(JSON.stringify(DEFAULT_STATS.difficultyStreaks));
+    if (!stats.totalTimes) stats.totalTimes = { ...DEFAULT_STATS.totalTimes };
+    if (!stats.averageTimes) stats.averageTimes = { ...DEFAULT_STATS.averageTimes };
+
     if (stats.dailyBestWinStreak === undefined) stats.dailyBestWinStreak = 0;
     if (stats.dailyCurrentWinStreak === undefined) stats.dailyCurrentWinStreak = 0;
 
@@ -188,11 +200,20 @@ const updateStatsObject = (stats: UserStats, gameResult: GameResult, userDisplay
     stats.totalTimeSeconds += gameResult.durationSeconds;
     stats.gamesPlayedCounts[gameResult.difficulty] += 1;
 
+    // Update difficulty total time
+    stats.totalTimes[gameResult.difficulty] += gameResult.durationSeconds;
+
     if (gameResult.result === 'win') {
         stats.wins += 1;
         stats.currentWinStreak += 1;
         if (stats.currentWinStreak > stats.bestWinStreak) {
             stats.bestWinStreak = stats.currentWinStreak;
+        }
+
+        // Difficulty Specific Streak
+        stats.difficultyStreaks[gameResult.difficulty].current += 1;
+        if (stats.difficultyStreaks[gameResult.difficulty].current > stats.difficultyStreaks[gameResult.difficulty].best) {
+            stats.difficultyStreaks[gameResult.difficulty].best = stats.difficultyStreaks[gameResult.difficulty].current;
         }
 
         // Daily Challenge Specific Streak
@@ -212,6 +233,9 @@ const updateStatsObject = (stats: UserStats, gameResult: GameResult, userDisplay
     } else {
         stats.losses += 1;
         stats.currentWinStreak = 0;
+
+        // Reset Difficulty Streak
+        stats.difficultyStreaks[gameResult.difficulty].current = 0;
 
         // Daily Challenge Specific Streak Reset
         if (isDailyChallenge) {
@@ -235,6 +259,36 @@ const updateStatsObject = (stats: UserStats, gameResult: GameResult, userDisplay
         stats.winRates[gameResult.difficulty] = stats.completedCounts[gameResult.difficulty] / stats.gamesPlayedCounts[gameResult.difficulty];
     }
 
+    // Recalculate difficulty-specific average time
+    // Only count completed games (wins) for average time? Usually average time is for solved puzzles.
+    // Let's use completedCounts for average time calculation to be consistent with "Average Time to Solve".
+    if (stats.completedCounts[gameResult.difficulty] > 0) {
+        // Note: totalTimes currently includes failed attempts if we just add durationSeconds.
+        // If we want "Average Solve Time", we should probably only add time for WINS to a separate counter, 
+        // OR assume totalTimes is fine. 
+        // Let's stick to: Average Time = Total Time Spent / Games Played (including losses) OR Total Time / Wins?
+        // Usually "Average Time" in Sudoku apps implies "Average Time for Solved Puzzles".
+        // But `totalTimes` above adds duration for ALL games.
+        // Let's adjust: Only add to `totalTimes` if it's a WIN? 
+        // No, let's keep `totalTimes` as "Time Spent".
+        // BUT for the UI "Average Time", users usually expect "Average Winning Time".
+        // Let's refine: Only add to `totalTimes` if result is 'win' for the purpose of "Average Time".
+        // Wait, `stats.totalTimeSeconds` adds all duration. 
+        // Let's make `averageTimes` be "Average Time per Completed Game".
+
+        // RE-LOGIC: Only add to totalTimes if win? 
+        // If I change logic now, I need to be careful. 
+        // Let's assume `totalTimes` tracks ALL time. 
+        // Then `averageTimes` = `totalTimes` / `gamesPlayedCounts`. This is "Average Duration per Game".
+        // If user wants "Average Solve Time", we need a separate `totalSolveTime`.
+        // Given the prompt "평균시간", usually means solve time.
+        // Let's modify: `totalTimes` will track ALL time. 
+        // But I will calculate average based on `completedCounts` if I want solve time? No that's inaccurate if I include loss time.
+
+        // Let's stick to: Average Time = Total Time / Games Played. This is simple and consistent.
+        stats.averageTimes[gameResult.difficulty] = stats.totalTimes[gameResult.difficulty] / stats.gamesPlayedCounts[gameResult.difficulty];
+    }
+
     return stats;
 };
 
@@ -242,15 +296,13 @@ export const saveGameResult = async (gameResult: GameResult, userDisplayName?: s
     const db = getFirestore();
     const now = new Date();
     const dailyKey = getDailyKey(now);
-    const weeklyKey = getWeekNumber(now);
 
     const userStatsRef = doc(db, USER_STATS_COLLECTION, gameResult.userId);
-    const dailyStatsRef = doc(db, LEADERBOARD_DAILY_COLLECTION, `${dailyKey}_${gameResult.userId}`);
-    const weeklyStatsRef = doc(db, LEADERBOARD_WEEKLY_COLLECTION, `${weeklyKey}_${gameResult.userId}`);
 
     // Daily Challenge Ref
+    const leaderboardDateKey = (isDailyChallenge && gameResult.dailyPuzzleDate) ? gameResult.dailyPuzzleDate : dailyKey;
     const dailyChallengeRef = isDailyChallenge
-        ? doc(db, DAILY_CHALLENGE_LEADERBOARD_COLLECTION, `${dailyKey}_${gameResult.userId}`)
+        ? doc(db, DAILY_CHALLENGE_LEADERBOARD_COLLECTION, `${leaderboardDateKey}_${gameResult.userId}`)
         : null;
 
     try {
@@ -261,20 +313,15 @@ export const saveGameResult = async (gameResult: GameResult, userDisplayName?: s
             transaction.set(newGameRef, {
                 ...gameResult,
                 createdAt: Timestamp.now(),
-                dailyKey,
-                weeklyKey,
+                dailyKey, // This remains the completion date
                 isDailyChallenge,
             });
 
             // 2. Read all stats docs
             const userStatsDoc = await transaction.get(userStatsRef);
-            const dailyStatsDoc = await transaction.get(dailyStatsRef);
-            const weeklyStatsDoc = await transaction.get(weeklyStatsRef);
 
             // 3. Prepare stats objects
             let allTimeStats = userStatsDoc.exists() ? (userStatsDoc.data() as UserStats) : JSON.parse(JSON.stringify(DEFAULT_STATS));
-            let dailyStats = dailyStatsDoc.exists() ? (dailyStatsDoc.data() as UserStats) : JSON.parse(JSON.stringify(DEFAULT_STATS));
-            let weeklyStats = weeklyStatsDoc.exists() ? (weeklyStatsDoc.data() as UserStats) : JSON.parse(JSON.stringify(DEFAULT_STATS));
 
             // 4. Update all stats
             // Ensure nickname consistency: use existing all-time nickname for daily/weekly if available
@@ -283,22 +330,8 @@ export const saveGameResult = async (gameResult: GameResult, userDisplayName?: s
             // Update All Time
             allTimeStats = updateStatsObject(allTimeStats, gameResult, currentNickname, isDailyChallenge);
 
-            // Update Daily
-            dailyStats = updateStatsObject(dailyStats, gameResult, currentNickname, isDailyChallenge);
-            dailyStats.userId = gameResult.userId;
-            dailyStats.displayName = currentNickname;
-            (dailyStats as any).periodKey = dailyKey;
-
-            // Update Weekly
-            weeklyStats = updateStatsObject(weeklyStats, gameResult, currentNickname, isDailyChallenge);
-            weeklyStats.userId = gameResult.userId;
-            weeklyStats.displayName = currentNickname;
-            (weeklyStats as any).periodKey = weeklyKey;
-
             // 5. Write back
             transaction.set(userStatsRef, allTimeStats);
-            transaction.set(dailyStatsRef, dailyStats);
-            transaction.set(weeklyStatsRef, weeklyStats);
 
             // 6. Handle Daily Challenge Specifics
             if (isDailyChallenge && dailyChallengeRef) {
@@ -311,7 +344,7 @@ export const saveGameResult = async (gameResult: GameResult, userDisplayName?: s
                         durationSeconds: gameResult.durationSeconds,
                         mistakes: gameResult.mistakes,
                         completedAt: Timestamp.now(),
-                        dailyKey,
+                        dailyKey: leaderboardDateKey,
                     });
                 } else {
                     const currentData = dailyChallengeDoc.data();
@@ -349,6 +382,9 @@ export const subscribeToUserStats = (userId: string, onUpdate: (stats: UserStats
                 // Ensure new fields exist for UI safety
                 if (!data.gamesPlayedCounts) data.gamesPlayedCounts = { ...DEFAULT_STATS.gamesPlayedCounts };
                 if (!data.winRates) data.winRates = { ...DEFAULT_STATS.winRates };
+                if (!data.difficultyStreaks) data.difficultyStreaks = JSON.parse(JSON.stringify(DEFAULT_STATS.difficultyStreaks));
+                if (!data.totalTimes) data.totalTimes = { ...DEFAULT_STATS.totalTimes };
+                if (!data.averageTimes) data.averageTimes = { ...DEFAULT_STATS.averageTimes };
                 onUpdate(data);
             } else {
                 onUpdate({ ...DEFAULT_STATS, userId });
@@ -361,7 +397,7 @@ export const subscribeToUserStats = (userId: string, onUpdate: (stats: UserStats
 };
 
 export type LeaderboardMetric = 'bestTime' | 'winRate' | 'wins';
-export type LeaderboardPeriod = 'all_time' | 'weekly' | 'daily';
+export type LeaderboardPeriod = 'all_time';
 
 export const getLeaderboard = async (
     metric: LeaderboardMetric,
@@ -372,36 +408,19 @@ export const getLeaderboard = async (
     const db = getFirestore();
     let collectionName = USER_STATS_COLLECTION;
 
-    const now = new Date();
-    let periodKey = '';
-    if (period === 'daily') {
-        collectionName = LEADERBOARD_DAILY_COLLECTION;
-        periodKey = getDailyKey(now);
-    } else if (period === 'weekly') {
-        collectionName = LEADERBOARD_WEEKLY_COLLECTION;
-        periodKey = getWeekNumber(now);
-    }
-
     let q;
     const constraints: any[] = [];
 
-    // For daily/weekly, we fetch by periodKey and sort client-side to avoid index issues
-    if (period !== 'all_time') {
-        constraints.push(where('periodKey', '==', periodKey));
-        // Fetch more than limit to allow for client-side filtering/sorting
-        constraints.push(firestoreLimit(100));
-    } else {
-        // All-time logic remains server-side sorted (assuming indexes exist or single field)
-        if (metric === 'bestTime') {
-            constraints.push(where(`bestTimes.${difficulty}`, '!=', null));
-            constraints.push(orderBy(`bestTimes.${difficulty}`, 'asc'));
-        } else if (metric === 'winRate') {
-            constraints.push(orderBy(`winRates.${difficulty}`, 'desc'));
-        } else { // wins
-            constraints.push(orderBy(`completedCounts.${difficulty}`, 'desc'));
-        }
-        constraints.push(firestoreLimit(limitCount));
+    // All-time logic remains server-side sorted (assuming indexes exist or single field)
+    if (metric === 'bestTime') {
+        constraints.push(where(`bestTimes.${difficulty}`, '!=', null));
+        constraints.push(orderBy(`bestTimes.${difficulty}`, 'asc'));
+    } else if (metric === 'winRate') {
+        constraints.push(orderBy(`winRates.${difficulty}`, 'desc'));
+    } else { // wins
+        constraints.push(orderBy(`completedCounts.${difficulty}`, 'desc'));
     }
+    constraints.push(firestoreLimit(limitCount));
 
     q = query(collection(db, collectionName), ...constraints);
 
@@ -418,35 +437,6 @@ export const getLeaderboard = async (
             if (!data.winRates) data.winRates = { ...DEFAULT_STATS.winRates };
             leaderboard.push(data);
         });
-
-        // Client-side sorting for daily/weekly
-        if (period !== 'all_time') {
-            leaderboard = leaderboard.filter(item => {
-                if (metric === 'bestTime') {
-                    return item.bestTimes && item.bestTimes[difficulty] !== null && item.bestTimes[difficulty] !== undefined;
-                }
-                return true;
-            });
-
-            leaderboard.sort((a, b) => {
-                if (metric === 'bestTime') {
-                    const timeA = a.bestTimes[difficulty] ?? Number.MAX_VALUE;
-                    const timeB = b.bestTimes[difficulty] ?? Number.MAX_VALUE;
-                    return timeA - timeB;
-                } else if (metric === 'winRate') {
-                    const rateA = a.winRates?.[difficulty] ?? 0;
-                    const rateB = b.winRates?.[difficulty] ?? 0;
-                    return rateB - rateA;
-                } else { // wins
-                    const winsA = a.completedCounts?.[difficulty] ?? 0;
-                    const winsB = b.completedCounts?.[difficulty] ?? 0;
-                    return winsB - winsA;
-                }
-            });
-
-            // Apply limit after sorting
-            leaderboard = leaderboard.slice(0, limitCount);
-        }
 
         return leaderboard;
     } catch (error: any) {
@@ -499,6 +489,85 @@ export const getStreakLeaderboard = async (limitCount: number = 20): Promise<Use
     }
 };
 
+export interface DifficultyPercentiles {
+    gamesPlayed: number;
+    winRate: number;
+    bestWinStreak: number;
+    averageTime: number;
+    bestTime: number;
+}
+
+export const getDifficultyPercentiles = async (userId: string, difficulty: Difficulty, stats: UserStats): Promise<DifficultyPercentiles> => {
+    const db = getFirestore();
+    const collectionRef = collection(db, USER_STATS_COLLECTION);
+
+    // Default to bottom 100% if no data
+    const result: DifficultyPercentiles = {
+        gamesPlayed: 0,
+        winRate: 0,
+        bestWinStreak: 0,
+        averageTime: 0,
+        bestTime: 0
+    };
+
+    try {
+        // 1. Total Users Count
+        // Let's try to import `getCountFromServer`.
+        const { getCountFromServer } = require('@react-native-firebase/firestore');
+
+        const totalUsersQuery = query(collectionRef);
+        const totalUsersSnapshotAgg = await getCountFromServer(totalUsersQuery);
+        const totalUsers = totalUsersSnapshotAgg.data().count;
+
+        if (totalUsers === 0) return result;
+
+        // Helper to calculate percentile
+        const calculatePercentile = async (fieldPath: string, op: '<' | '>' | '==', value: number, sortOrder: 'asc' | 'desc') => {
+            if (value === 0 || value === null) return 0; // No data usually means bottom
+
+            let betterQuery;
+            if (sortOrder === 'desc') {
+                betterQuery = query(collectionRef, where(fieldPath, '>', value));
+            } else {
+                betterQuery = query(collectionRef, where(fieldPath, '<', value), where(fieldPath, '!=', null)); // Exclude nulls for time
+            }
+
+            const betterSnapshot = await getCountFromServer(betterQuery);
+            const betterCount = betterSnapshot.data().count;
+            const rank = betterCount + 1;
+
+            // Top X % = (Rank / Total) * 100
+            return (rank / totalUsers) * 100;
+        };
+
+        // 2. Calculate for each metric
+        const gamesPlayed = stats.completedCounts?.[difficulty] ?? 0;
+        result.gamesPlayed = await calculatePercentile(`completedCounts.${difficulty}`, '>', gamesPlayed, 'desc');
+
+        const winRate = stats.winRates?.[difficulty] ?? 0;
+        result.winRate = await calculatePercentile(`winRates.${difficulty}`, '>', winRate, 'desc');
+
+        const bestStreak = stats.difficultyStreaks?.[difficulty]?.best ?? 0;
+        result.bestWinStreak = await calculatePercentile(`difficultyStreaks.${difficulty}.best`, '>', bestStreak, 'desc');
+
+        const avgTime = stats.averageTimes?.[difficulty] ?? 0;
+        if (avgTime > 0) {
+            result.averageTime = await calculatePercentile(`averageTimes.${difficulty}`, '<', avgTime, 'asc');
+        }
+
+        const bestTime = stats.bestTimes?.[difficulty];
+        if (bestTime !== null && bestTime !== undefined) {
+            result.bestTime = await calculatePercentile(`bestTimes.${difficulty}`, '<', bestTime, 'asc');
+        }
+
+        return result;
+
+    } catch (error) {
+        console.error('StatsRepository: Failed to calculate percentiles', error);
+        return result;
+    }
+};
+
 export const getDailyStreak = async (userId: string): Promise<number> => {
     const db = getFirestore();
     const q = query(
@@ -514,10 +583,16 @@ export const getDailyStreak = async (userId: string): Promise<number> => {
         const snapshot = await getDocs(q);
         if (snapshot.empty) return 0;
 
-        const dates = snapshot.docs.map((d: any) => {
-            const data = d.data();
-            return data.dailyKey; // YYYY-MM-DD
-        });
+        const dates = snapshot.docs
+            .map((d: any) => d.data())
+            .filter((data: any) => {
+                // Strict check: Puzzle date must match completion date (dailyKey)
+                if (data.dailyPuzzleDate && data.dailyPuzzleDate !== data.dailyKey) {
+                    return false;
+                }
+                return true;
+            })
+            .map((data: any) => data.dailyKey); // YYYY-MM-DD
 
         const uniqueDates = Array.from(new Set(dates)).sort().reverse();
 
@@ -553,40 +628,6 @@ export const getDailyStreak = async (userId: string): Promise<number> => {
     }
 };
 
-export const ensureDailyStats = async (userId: string, currentStreak: number) => {
-    const db = getFirestore();
-    const userStatsRef = doc(db, USER_STATS_COLLECTION, userId);
-
-    try {
-        await runTransaction(db, async (transaction) => {
-            const userStatsDoc = await transaction.get(userStatsRef);
-            if (!userStatsDoc.exists()) return;
-
-            const stats = userStatsDoc.data() as UserStats;
-            let changed = false;
-
-            if (stats.dailyCurrentWinStreak !== currentStreak) {
-                stats.dailyCurrentWinStreak = currentStreak;
-                changed = true;
-            }
-
-            if (stats.dailyBestWinStreak < currentStreak) {
-                stats.dailyBestWinStreak = currentStreak;
-                changed = true;
-            }
-
-            if (changed) {
-                transaction.update(userStatsRef, {
-                    dailyCurrentWinStreak: stats.dailyCurrentWinStreak,
-                    dailyBestWinStreak: stats.dailyBestWinStreak
-                });
-            }
-        });
-    } catch (error) {
-        console.error('StatsRepository: Failed to ensure daily stats', error);
-    }
-};
-
 export const cleanupInvalidGames = async (userId: string) => {
     const db = getFirestore();
     const gamesRef = collection(db, GAMES_COLLECTION);
@@ -599,7 +640,6 @@ export const cleanupInvalidGames = async (userId: string) => {
         let deletedCount = 0;
         const validGames: GameResult[] = [];
         const affectedDailyKeys = new Set<string>();
-        const affectedWeeklyKeys = new Set<string>();
 
         snapshot.forEach((doc) => {
             const data = doc.data() as any;
@@ -607,7 +647,6 @@ export const cleanupInvalidGames = async (userId: string) => {
                 batch.delete(doc.ref);
                 deletedCount++;
                 if (data.dailyKey) affectedDailyKeys.add(data.dailyKey);
-                if (data.weeklyKey) affectedWeeklyKeys.add(data.weeklyKey);
             } else {
                 validGames.push(data as GameResult);
             }
@@ -649,14 +688,11 @@ export const cleanupInvalidGames = async (userId: string) => {
 
         // 3. Rebuild Affected Daily Stats & Daily Challenge Leaderboard
         const validDailyKeys = new Set<string>();
-        const validWeeklyKeys = new Set<string>();
         validGames.forEach((g: any) => {
             if (g.dailyKey) validDailyKeys.add(g.dailyKey);
-            if (g.weeklyKey) validWeeklyKeys.add(g.weeklyKey);
         });
 
         const allDailyKeys = new Set<string>([...affectedDailyKeys, ...validDailyKeys]);
-        const allWeeklyKeys = new Set<string>([...affectedWeeklyKeys, ...validWeeklyKeys]);
 
         const dailyUpdates: Promise<void>[] = [];
 
@@ -664,30 +700,21 @@ export const cleanupInvalidGames = async (userId: string) => {
             // Filter games for this day
             const dailyGames = validGames.filter((g: any) => g.dailyKey === dailyKey);
 
-            const dailyStatsRef = doc(db, LEADERBOARD_DAILY_COLLECTION, `${dailyKey}_${userId}`);
             const dailyChallengeRef = doc(db, DAILY_CHALLENGE_LEADERBOARD_COLLECTION, `${dailyKey}_${userId}`);
 
             if (dailyGames.length === 0) {
                 // No valid games left for this day -> Delete stats
                 dailyUpdates.push(runTransaction(db, async (t) => {
-                    t.delete(dailyStatsRef);
                     t.delete(dailyChallengeRef);
                 }));
                 continue;
             }
-
-            // Rebuild Daily Stats
-            let newDailyStats = JSON.parse(JSON.stringify(DEFAULT_STATS));
-            newDailyStats.userId = userId;
-            newDailyStats.displayName = currentNickname;
-            newDailyStats.periodKey = dailyKey;
 
             let bestDailyChallengeTime: number | null = null;
             let bestDailyChallengeMistakes: number = 0;
 
             for (const game of dailyGames) {
                 const isDaily = (game as any).isDailyChallenge === true;
-                newDailyStats = updateStatsObject(newDailyStats, game, currentNickname, isDaily);
 
                 if (isDaily && game.result === 'win') {
                     if (bestDailyChallengeTime === null || game.durationSeconds < bestDailyChallengeTime) {
@@ -696,11 +723,6 @@ export const cleanupInvalidGames = async (userId: string) => {
                     }
                 }
             }
-
-            // Update Daily Leaderboard Doc
-            dailyUpdates.push(runTransaction(db, async (t) => {
-                t.set(dailyStatsRef, newDailyStats);
-            }));
 
             // Update Daily Challenge Leaderboard Doc
             dailyUpdates.push(runTransaction(db, async (t) => {
@@ -720,39 +742,10 @@ export const cleanupInvalidGames = async (userId: string) => {
             }));
         }
 
-        // 4. Rebuild Affected Weekly Stats
-        const weeklyUpdates: Promise<void>[] = [];
-        for (const weeklyKey of allWeeklyKeys) {
-            const weeklyGames = validGames.filter((g: any) => g.weeklyKey === weeklyKey);
-            const weeklyStatsRef = doc(db, LEADERBOARD_WEEKLY_COLLECTION, `${weeklyKey}_${userId}`);
-
-            if (weeklyGames.length === 0) {
-                weeklyUpdates.push(runTransaction(db, async (t) => {
-                    t.delete(weeklyStatsRef);
-                }));
-                continue;
-            }
-
-            let newWeeklyStats = JSON.parse(JSON.stringify(DEFAULT_STATS));
-            newWeeklyStats.userId = userId;
-            newWeeklyStats.displayName = currentNickname;
-            newWeeklyStats.periodKey = weeklyKey;
-
-            for (const game of weeklyGames) {
-                const isDaily = (game as any).isDailyChallenge === true;
-                newWeeklyStats = updateStatsObject(newWeeklyStats, game, currentNickname, isDaily);
-            }
-
-            weeklyUpdates.push(runTransaction(db, async (t) => {
-                t.set(weeklyStatsRef, newWeeklyStats);
-            }));
-        }
-
         // Execute all updates
         await Promise.all([
             runTransaction(db, async (t) => { t.set(userStatsRef, newAllTimeStats); }),
-            ...dailyUpdates,
-            ...weeklyUpdates
+            ...dailyUpdates
         ]);
 
         console.log('StatsRepository: Cleanup complete. Stats updated.');

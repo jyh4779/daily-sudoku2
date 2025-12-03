@@ -42,10 +42,18 @@ export type SavedGameSnapshot = {
   hintsUsed: number;
   savedAt?: number;
   isDailyChallenge?: boolean;
+  dailyDate?: string;
 };
 
-export async function saveSavedGameSnapshot(snapshot: SavedGameSnapshot, type: 'normal' | 'daily' = 'normal') {
-  const key = type === 'daily' ? STORAGE_KEY_DAILY : STORAGE_KEY_NORMAL;
+const getStorageKey = (type: 'normal' | 'daily', dateString?: string) => {
+  if (type === 'daily' && dateString) {
+    return `${STORAGE_KEY_DAILY}_${dateString}`;
+  }
+  return type === 'daily' ? STORAGE_KEY_DAILY : STORAGE_KEY_NORMAL;
+};
+
+export async function saveSavedGameSnapshot(snapshot: SavedGameSnapshot, type: 'normal' | 'daily' = 'normal', dateString?: string) {
+  const key = getStorageKey(type, dateString);
   const payload = JSON.stringify({
     puzzle_json: JSON.stringify(snapshot.puzzle ?? emptyGrid()),
     solution_json: JSON.stringify(snapshot.solution ?? emptyGrid()),
@@ -62,12 +70,13 @@ export async function saveSavedGameSnapshot(snapshot: SavedGameSnapshot, type: '
     hints_used: snapshot.hintsUsed ?? 0,
     saved_at: Date.now(),
     is_daily_challenge: type === 'daily',
+    daily_date: snapshot.dailyDate,
   });
   await AsyncStorage.setItem(key, payload);
 }
 
-export async function loadSavedGameSnapshot(type: 'normal' | 'daily' = 'normal'): Promise<SavedGameSnapshot | null> {
-  const key = type === 'daily' ? STORAGE_KEY_DAILY : STORAGE_KEY_NORMAL;
+export async function loadSavedGameSnapshot(type: 'normal' | 'daily' = 'normal', dateString?: string): Promise<SavedGameSnapshot | null> {
+  const key = getStorageKey(type, dateString);
   const stored = await AsyncStorage.getItem(key);
   if (!stored) return null;
   const row = JSON.parse(stored) as {
@@ -86,6 +95,7 @@ export async function loadSavedGameSnapshot(type: 'normal' | 'daily' = 'normal')
     hints_used: number;
     saved_at: number;
     is_daily_challenge?: boolean;
+    daily_date?: string;
   };
   return {
     puzzle: parseGrid(row.puzzle_json),
@@ -103,16 +113,17 @@ export async function loadSavedGameSnapshot(type: 'normal' | 'daily' = 'normal')
     hintsUsed: Number(row.hints_used) || 0,
     savedAt: row.saved_at,
     isDailyChallenge: !!row.is_daily_challenge,
+    dailyDate: row.daily_date,
   };
 }
 
-export async function hasSavedGameSnapshot(type: 'normal' | 'daily' = 'normal'): Promise<boolean> {
-  const key = type === 'daily' ? STORAGE_KEY_DAILY : STORAGE_KEY_NORMAL;
+export async function hasSavedGameSnapshot(type: 'normal' | 'daily' = 'normal', dateString?: string): Promise<boolean> {
+  const key = getStorageKey(type, dateString);
   const stored = await AsyncStorage.getItem(key);
   return stored !== null;
 }
 
-export async function clearSavedGameSnapshot(type: 'normal' | 'daily' = 'normal') {
-  const key = type === 'daily' ? STORAGE_KEY_DAILY : STORAGE_KEY_NORMAL;
+export async function clearSavedGameSnapshot(type: 'normal' | 'daily' = 'normal', dateString?: string) {
+  const key = getStorageKey(type, dateString);
   await AsyncStorage.removeItem(key);
 }
