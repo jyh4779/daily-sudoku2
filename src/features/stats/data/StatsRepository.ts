@@ -1,4 +1,4 @@
-import { getFirestore, collection, addDoc, query, where, onSnapshot, Timestamp, orderBy, doc, runTransaction, getDocs, limit as firestoreLimit } from '@react-native-firebase/firestore';
+import { getFirestore, collection, addDoc, query, where, onSnapshot, Timestamp, orderBy, doc, runTransaction, getDocs, limit as firestoreLimit, writeBatch } from '@react-native-firebase/firestore';
 import AppLogger from '../../../core/logger/AppLogger';
 import { getRandomNickname } from '../../../config/nicknames';
 
@@ -12,7 +12,6 @@ export interface GameResult {
     endTime: number;   // Unix timestamp (seconds)
     durationSeconds: number;
     result: 'win' | 'loss';
-    dailyPuzzleDate?: string;
 }
 
 export interface UserStats {
@@ -300,7 +299,7 @@ export const saveGameResult = async (gameResult: GameResult, userDisplayName?: s
     const userStatsRef = doc(db, USER_STATS_COLLECTION, gameResult.userId);
 
     // Daily Challenge Ref
-    const leaderboardDateKey = (isDailyChallenge && gameResult.dailyPuzzleDate) ? gameResult.dailyPuzzleDate : dailyKey;
+    const leaderboardDateKey = dailyKey;
     const dailyChallengeRef = isDailyChallenge
         ? doc(db, DAILY_CHALLENGE_LEADERBOARD_COLLECTION, `${leaderboardDateKey}_${gameResult.userId}`)
         : null;
@@ -586,10 +585,6 @@ export const getDailyStreak = async (userId: string): Promise<number> => {
         const dates = snapshot.docs
             .map((d: any) => d.data())
             .filter((data: any) => {
-                // Strict check: Puzzle date must match completion date (dailyKey)
-                if (data.dailyPuzzleDate && data.dailyPuzzleDate !== data.dailyKey) {
-                    return false;
-                }
                 return true;
             })
             .map((data: any) => data.dailyKey); // YYYY-MM-DD
@@ -670,7 +665,7 @@ export const cleanupInvalidGames = async (userId: string) => {
         const validGames: GameResult[] = [];
         const affectedDailyKeys = new Set<string>();
 
-        snapshot.forEach((doc) => {
+        snapshot.forEach((doc: any) => {
             const data = doc.data() as any;
             if (data.durationSeconds === 0) {
                 batch.delete(doc.ref);
@@ -703,17 +698,7 @@ export const cleanupInvalidGames = async (userId: string) => {
         }
 
         // 2. Rebuild All Time Stats
-        let newAllTimeStats = JSON.parse(JSON.stringify(DEFAULT_STATS));
-        newAllTimeStats.userId = userId;
-        newAllTimeStats.displayName = currentNickname;
-
-        // Sort by time for streak calculation
-        validGames.sort((a, b) => a.startTime - b.startTime);
-
-        for (const game of validGames) {
-            const isDaily = (game as any).isDailyChallenge === true;
-            newAllTimeStats = updateStatsObject(newAllTimeStats, game, currentNickname, isDaily);
-        }
+        const newAllTimeStats = rebuildUserStats(userId, validGames, currentNickname);
 
         // 3. Rebuild Affected Daily Stats & Daily Challenge Leaderboard
         const validDailyKeys = new Set<string>();
@@ -781,6 +766,85 @@ export const cleanupInvalidGames = async (userId: string) => {
         return deletedCount;
     } catch (error: any) {
         console.error('StatsRepository: Cleanup failed', error);
+        throw error;
+    }
+};
+
+const rebuildUserStats = (userId: string, games: GameResult[], nickname: string): UserStats => {
+    let newStats = JSON.parse(JSON.stringify(DEFAULT_STATS));
+    newStats.userId = userId;
+    newStats.displayName = nickname;
+
+    // Sort by time for streak calculation
+    // Create a copy to avoid mutating the original array if needed, though here it's fine
+    const sortedGames = [...games].sort((a, b) => a.startTime - b.startTime);
+
+    for (const game of sortedGames) {
+        const isDaily = (game as any).isDailyChallenge === true;
+        newStats = updateStatsObject(newStats, game, nickname, isDaily);
+    }
+
+    return newStats;
+};
+
+export const resetGameRecords = async (userId: string, difficulties: Difficulty[]) => {
+    const db = getFirestore();
+    const gamesRef = collection(db, GAMES_COLLECTION);
+    const userStatsRef = doc(db, USER_STATS_COLLECTION, userId);
+
+    try {
+        console.log(`StatsRepository: Resetting records for user ${userId}, difficulties: ${difficulties.join(', ')}`);
+
+        // 1. Fetch all games
+        const q = query(gamesRef, where('userId', '==', userId));
+        const snapshot = await getDocs(q);
+
+        const batch = writeBatch(db);
+        const remainingGames: GameResult[] = [];
+        let deletedCount = 0;
+
+        snapshot.forEach((doc: any) => {
+            const data = doc.data() as GameResult;
+            const isDaily = (data as any).isDailyChallenge === true;
+
+            // Only delete if NOT daily challenge AND difficulty is in the list
+            if (!isDaily && difficulties.includes(data.difficulty)) {
+                batch.delete(doc.ref);
+                deletedCount++;
+            } else {
+                remainingGames.push(data);
+            }
+        });
+
+        if (deletedCount > 0) {
+            await batch.commit();
+            console.log(`StatsRepository: Deleted ${deletedCount} games.`);
+        } else {
+            console.log('StatsRepository: No games found to delete.');
+        }
+
+        // 2. Get current nickname (to preserve it)
+        let currentNickname = getRandomNickname();
+        const userStatsDoc = await getDocs(query(collection(db, USER_STATS_COLLECTION), where('userId', '==', userId), firestoreLimit(1)));
+        if (!userStatsDoc.empty) {
+            const currentData = userStatsDoc.docs[0].data();
+            if (currentData.displayName) {
+                currentNickname = currentData.displayName;
+            }
+        }
+
+        // 3. Recalculate Stats
+        const newStats = rebuildUserStats(userId, remainingGames, currentNickname);
+
+        // 4. Save Stats
+        await runTransaction(db, async (t) => {
+            t.set(userStatsRef, newStats);
+        });
+
+        console.log('StatsRepository: Stats reset and recalculated successfully.');
+
+    } catch (error: any) {
+        console.error('StatsRepository: Failed to reset records', error);
         throw error;
     }
 };

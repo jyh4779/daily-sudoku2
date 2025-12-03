@@ -60,6 +60,9 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode, difficulty 
 
   const dailyDate = useSudokuStore(s => s.dailyDate);
 
+  const [isReady, setIsReady] = useState(false);
+  const hasSaved = React.useRef(false);
+
   useEffect(() => {
     let isMounted = true;
     const bootstrap = async () => {
@@ -80,7 +83,10 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode, difficulty 
       } catch (e) {
         console.error(e);
       } finally {
-        if (isMounted) setIsPaused(false);
+        if (isMounted) {
+          setIsReady(true);
+          setIsPaused(false);
+        }
       }
     };
     bootstrap();
@@ -135,6 +141,8 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode, difficulty 
 
   useEffect(() => {
     setStartTime(Date.now());
+    // Reset saved flag on new game start
+    hasSaved.current = false;
   }, [mode, loadNewGame, restartCurrent]);
 
 
@@ -161,10 +169,12 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode, difficulty 
     setStartTime(Date.now());
   };
   const handleNewGame = () => {
+    setIsReady(false); // Reset ready state for new game
     loadNewGame(difficulty).then(() => {
       resetElapsed();
       setIsPaused(false);
       setStartTime(Date.now());
+      setIsReady(true); // Set ready after load
     });
   };
   const handlePause = () => {
@@ -179,14 +189,17 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode, difficulty 
     }) ?? ADMOB_IDS.android.banner;
 
   useEffect(() => {
+    if (!isReady) return; // Don't process results until game is fully loaded
+
     if (isSolved || isLost) {
+      if (hasSaved.current) return; // Prevent duplicate saves
+      hasSaved.current = true;
+
       const user = getCurrentUser();
       if (user) {
         const endTime = Date.now();
         // Use elapsedSec from store for accurate total duration across sessions
         const durationSeconds = elapsedSec;
-
-        const puzzleDate = dailyDate ?? new Date().toISOString().split('T')[0];
 
         saveGameResult({
           userId: user.uid,
@@ -196,12 +209,14 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode, difficulty 
           endTime: Math.floor(endTime / 1000),
           durationSeconds: durationSeconds,
           result: isSolved ? 'win' : 'loss',
-          dailyPuzzleDate: isDailyChallenge ? puzzleDate : undefined,
         }, undefined, isDailyChallenge).catch(err => console.warn('Failed to save game result', err));
       }
       void (clearSavedProgress?.(isDailyChallenge) ?? Promise.resolve());
+    } else {
+      // Reset saved flag if game is running (e.g. after restart)
+      hasSaved.current = false;
     }
-  }, [isSolved, isLost, clearSavedProgress, difficulty, mistakes, startTime]);
+  }, [isSolved, isLost, clearSavedProgress, difficulty, mistakes, startTime, isReady]);
 
   return (
     <View style={styles.screen}>
