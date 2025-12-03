@@ -628,6 +628,35 @@ export const getDailyStreak = async (userId: string): Promise<number> => {
     }
 };
 
+export const syncDailyStreak = async (userId: string) => {
+    const db = getFirestore();
+    const userStatsRef = doc(db, USER_STATS_COLLECTION, userId);
+
+    try {
+        // 1. Calculate actual streak
+        const actualStreak = await getDailyStreak(userId);
+
+        // 2. Update DB if needed
+        await runTransaction(db, async (transaction) => {
+            const userStatsDoc = await transaction.get(userStatsRef);
+            if (!userStatsDoc.exists()) return;
+
+            const stats = userStatsDoc.data() as UserStats;
+            if (stats.dailyCurrentWinStreak !== actualStreak) {
+                const updates: any = { dailyCurrentWinStreak: actualStreak };
+                // Also update best streak if current is higher
+                if (actualStreak > (stats.dailyBestWinStreak || 0)) {
+                    updates.dailyBestWinStreak = actualStreak;
+                }
+                transaction.update(userStatsRef, updates);
+                console.log(`StatsRepository: Synced daily streak. Old: ${stats.dailyCurrentWinStreak}, New: ${actualStreak}`);
+            }
+        });
+    } catch (error) {
+        console.error('StatsRepository: Failed to sync daily streak', error);
+    }
+};
+
 export const cleanupInvalidGames = async (userId: string) => {
     const db = getFirestore();
     const gamesRef = collection(db, GAMES_COLLECTION);

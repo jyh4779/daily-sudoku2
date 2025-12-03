@@ -116,6 +116,14 @@ export const TEXTS_KO: TextResources = {
                 wins: '승리 수',
             },
         },
+        reset: {
+            title: '기록 초기화',
+            selectAll: '전체 선택',
+            warningTitle: '경고',
+            warningMessage: '선택한 난이도의 기록을 초기화하시겠습니까? 이 작업은 되돌릴 수 없습니다.',
+            success: '기록이 초기화되었습니다.',
+            button: '초기화',
+        },
     },
     settings: {
         title: '설정',

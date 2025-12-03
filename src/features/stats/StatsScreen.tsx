@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, BackHandler, FlatList } from 'react-native';
-import { subscribeToUserStats, UserStats, Difficulty, getDifficultyPercentiles, DifficultyPercentiles, getDailyStreak, getStreakLeaderboard } from './data/StatsRepository';
+import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, BackHandler, FlatList, Modal, Alert } from 'react-native';
+import { subscribeToUserStats, UserStats, Difficulty, getDifficultyPercentiles, DifficultyPercentiles, getDailyStreak, getStreakLeaderboard, resetGameRecords } from './data/StatsRepository';
 import { getCurrentUser } from '../../core/auth/AuthRepository';
 import { useTexts } from '../../config/texts';
 
@@ -20,6 +20,11 @@ const StatsScreen: React.FC<StatsScreenProps> = ({ onGoBack }) => {
   const [dailyStreak, setDailyStreak] = useState(0);
   const [dailyLeaderboard, setDailyLeaderboard] = useState<any[]>([]);
   const [dailyLoading, setDailyLoading] = useState(false);
+
+  // Reset Modal State
+  const [isResetModalVisible, setIsResetModalVisible] = useState(false);
+  const [selectedResetDifficulties, setSelectedResetDifficulties] = useState<Set<Difficulty>>(new Set());
+  const [isResetting, setIsResetting] = useState(false);
 
   useEffect(() => {
     const backAction = () => {
@@ -134,6 +139,58 @@ const StatsScreen: React.FC<StatsScreenProps> = ({ onGoBack }) => {
     totalTimeSeconds: 0,
   };
 
+  const toggleResetDifficulty = (diff: Difficulty) => {
+    const newSet = new Set(selectedResetDifficulties);
+    if (newSet.has(diff)) {
+      newSet.delete(diff);
+    } else {
+      newSet.add(diff);
+    }
+    setSelectedResetDifficulties(newSet);
+  };
+
+  const toggleSelectAll = () => {
+    const allDiffs: Difficulty[] = ['beginner', 'easy', 'medium', 'hard', 'expert'];
+    if (selectedResetDifficulties.size === allDiffs.length) {
+      setSelectedResetDifficulties(new Set());
+    } else {
+      setSelectedResetDifficulties(new Set(allDiffs));
+    }
+  };
+
+  const handleReset = async () => {
+    if (selectedResetDifficulties.size === 0) return;
+
+    Alert.alert(
+      texts.stats.reset.warningTitle,
+      texts.stats.reset.warningMessage,
+      [
+        { text: texts.common.cancel, style: 'cancel' },
+        {
+          text: texts.common.confirm,
+          style: 'destructive',
+          onPress: async () => {
+            setIsResetting(true);
+            try {
+              const user = getCurrentUser();
+              if (user) {
+                await resetGameRecords(user.uid, Array.from(selectedResetDifficulties));
+                Alert.alert(texts.settings.success, texts.stats.reset.success);
+                setIsResetModalVisible(false);
+                setSelectedResetDifficulties(new Set());
+              }
+            } catch (error) {
+              console.error('Reset failed', error);
+              Alert.alert(texts.settings.error, 'Failed to reset records.');
+            } finally {
+              setIsResetting(false);
+            }
+          }
+        }
+      ]
+    );
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -143,6 +200,7 @@ const StatsScreen: React.FC<StatsScreenProps> = ({ onGoBack }) => {
   }
 
   const tabs: (Difficulty | 'daily')[] = ['beginner', 'easy', 'medium', 'hard', 'expert', 'daily'];
+  const resetDiffs: Difficulty[] = ['beginner', 'easy', 'medium', 'hard', 'expert'];
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -151,7 +209,12 @@ const StatsScreen: React.FC<StatsScreenProps> = ({ onGoBack }) => {
           <Text style={styles.backIcon}>{'<'}</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{texts.common.records}</Text>
-        <View style={styles.headerSpacer} />
+        <TouchableOpacity
+          style={styles.resetButton}
+          onPress={() => setIsResetModalVisible(true)}
+        >
+          <Text style={styles.resetButtonText}>↺</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.tabsContainer}>
@@ -281,6 +344,60 @@ const StatsScreen: React.FC<StatsScreenProps> = ({ onGoBack }) => {
           </>
         )}
       </ScrollView>
+
+      {/* Reset Modal */}
+      <Modal
+        visible={isResetModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setIsResetModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>{texts.stats.reset.title}</Text>
+
+            <TouchableOpacity style={styles.selectAllBtn} onPress={toggleSelectAll}>
+              <Text style={styles.selectAllText}>{texts.stats.reset.selectAll}</Text>
+            </TouchableOpacity>
+
+            <ScrollView style={styles.diffList}>
+              {resetDiffs.map(diff => (
+                <TouchableOpacity
+                  key={diff}
+                  style={styles.diffItem}
+                  onPress={() => toggleResetDifficulty(diff)}
+                >
+                  <View style={[styles.checkbox, selectedResetDifficulties.has(diff) && styles.checkboxSelected]}>
+                    {selectedResetDifficulties.has(diff) && <Text style={styles.checkmark}>✓</Text>}
+                  </View>
+                  <Text style={styles.diffText}>{texts.game.difficulty[diff]}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[styles.modalBtn, styles.cancelBtn]}
+                onPress={() => setIsResetModalVisible(false)}
+                disabled={isResetting}
+              >
+                <Text style={styles.modalBtnText}>{texts.common.cancel}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalBtn, styles.confirmBtn, selectedResetDifficulties.size === 0 && styles.disabledBtn]}
+                onPress={handleReset}
+                disabled={isResetting || selectedResetDifficulties.size === 0}
+              >
+                {isResetting ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <Text style={[styles.modalBtnText, styles.confirmBtnText]}>{texts.stats.reset.button}</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -323,8 +440,16 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#333',
   },
-  headerSpacer: {
+  resetButton: {
     width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  resetButtonText: {
+    fontSize: 24,
+    color: '#5b7df6',
+    fontWeight: 'bold',
   },
   tabsContainer: {
     backgroundColor: '#fff',
@@ -451,5 +576,98 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#555',
     fontWeight: '500',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 24,
+    width: '100%',
+    maxWidth: 340,
+    maxHeight: '80%',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#333',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  selectAllBtn: {
+    alignSelf: 'flex-end',
+    marginBottom: 12,
+    padding: 4,
+  },
+  selectAllText: {
+    color: '#5b7df6',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  diffList: {
+    marginBottom: 24,
+  },
+  diffItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: '#ddd',
+    marginRight: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxSelected: {
+    backgroundColor: '#5b7df6',
+    borderColor: '#5b7df6',
+  },
+  checkmark: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  diffText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cancelBtn: {
+    backgroundColor: '#f0f2f5',
+  },
+  confirmBtn: {
+    backgroundColor: '#ff6b6b',
+  },
+  disabledBtn: {
+    opacity: 0.5,
+  },
+  modalBtnText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#666',
+  },
+  confirmBtnText: {
+    color: '#fff',
   },
 });

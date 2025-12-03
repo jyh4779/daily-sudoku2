@@ -11,7 +11,7 @@ import MainLayout from './src/features/home/MainLayout';
 import SettingsScreen from './src/features/settings/SettingsScreen';
 import { hasSavedGameSnapshot, loadSavedGameSnapshot } from './src/features/sudoku/data/SavedGameRepository';
 import { initGoogleSignin, signInWithGoogle, getCurrentUser, signInAnonymously, waitForAuthInit } from './src/core/auth/AuthRepository';
-import { saveGameResult } from './src/features/stats/data/StatsRepository';
+import { saveGameResult, syncDailyStreak } from './src/features/stats/data/StatsRepository';
 import { checkAppVersion } from './src/core/version/VersionCheckRepository';
 import { Linking } from 'react-native';
 import SoundManager from './src/core/audio/SoundManager';
@@ -83,7 +83,16 @@ export default function App() {
 
       if (type) {
         // Auto-navigate for both Google and Guest users
-        setTimeout(() => setScreen('home'), 1000);
+        const currentUser = getCurrentUser();
+        const minSplashTime = new Promise(resolve => setTimeout(resolve, 1000));
+
+        const tasks: Promise<any>[] = [minSplashTime];
+        if (currentUser) {
+          tasks.push(syncDailyStreak(currentUser.uid));
+        }
+
+        await Promise.all(tasks);
+        setScreen('home');
         return;
       }
 

@@ -43,6 +43,7 @@ export const TEXTS_EN = {
             medium: 'Medium',
             hard: 'Hard',
             expert: 'Expert',
+            daily: 'Daily',
         },
         lockMessage: {
             easy: 'Win 3 Beginner games to unlock',
@@ -112,6 +113,14 @@ export const TEXTS_EN = {
                 winRate: 'Win Rate',
                 wins: 'Wins',
             },
+        },
+        reset: {
+            title: 'Reset Records',
+            selectAll: 'Select All',
+            warningTitle: 'Warning',
+            warningMessage: 'Are you sure you want to reset the selected records? This action cannot be undone.',
+            success: 'Records reset successfully.',
+            button: 'Reset',
         },
     },
     settings: {

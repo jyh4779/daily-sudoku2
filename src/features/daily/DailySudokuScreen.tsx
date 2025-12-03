@@ -47,9 +47,14 @@ const DailySudokuScreen: React.FC<DailySudokuScreenProps> = ({ onPlay }) => {
     }, [loadData]);
 
     const handleStartDaily = () => {
+        const today = new Date().toISOString().split('T')[0];
+        if (selectedDate !== today) return;
+
         setDailyDate(selectedDate);
         onPlay(selectedDate);
     };
+
+    const isToday = selectedDate === new Date().toISOString().split('T')[0];
 
     return (
         <SafeAreaView style={styles.safe}>
@@ -70,7 +75,7 @@ const DailySudokuScreen: React.FC<DailySudokuScreenProps> = ({ onPlay }) => {
 
                 {/* Action Section */}
                 <View style={styles.actionContainer}>
-                    <Text style={styles.dateLabel}>{selectedDate === new Date().toISOString().split('T')[0] ? 'Today' : selectedDate}</Text>
+                    <Text style={styles.dateLabel}>{isToday ? 'Today' : selectedDate}</Text>
                     {loading ? (
                         <ActivityIndicator color="#5b7df6" />
                     ) : todayCompleted ? (
@@ -78,7 +83,11 @@ const DailySudokuScreen: React.FC<DailySudokuScreenProps> = ({ onPlay }) => {
                             <Text style={styles.completedText}>{texts.game.overlayTitle.success}</Text>
                         </View>
                     ) : (
-                        <TouchableOpacity style={styles.playButton} onPress={handleStartDaily}>
+                        <TouchableOpacity
+                            style={[styles.playButton, !isToday && styles.playButtonDisabled]}
+                            onPress={handleStartDaily}
+                            disabled={!isToday}
+                        >
                             <Text style={styles.playButtonText}>{texts.daily.playButton}</Text>
                         </TouchableOpacity>
                     )}
@@ -142,6 +151,9 @@ const styles = StyleSheet.create({
         borderRadius: 30,
         width: '100%',
         alignItems: 'center',
+    },
+    playButtonDisabled: {
+        backgroundColor: '#ccc',
     },
     playButtonText: {
         color: '#fff',
