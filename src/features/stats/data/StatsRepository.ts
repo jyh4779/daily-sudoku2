@@ -199,8 +199,8 @@ const updateStatsObject = (stats: UserStats, gameResult: GameResult, userDisplay
     stats.totalTimeSeconds += gameResult.durationSeconds;
     stats.gamesPlayedCounts[gameResult.difficulty] += 1;
 
-    // Update difficulty total time
-    stats.totalTimes[gameResult.difficulty] += gameResult.durationSeconds;
+    // Update difficulty total time - MOVED to win block
+    // stats.totalTimes[gameResult.difficulty] += gameResult.durationSeconds;
 
     if (gameResult.result === 'win') {
         stats.wins += 1;
@@ -229,6 +229,9 @@ const updateStatsObject = (stats: UserStats, gameResult: GameResult, userDisplay
         if (currentBest === null || gameResult.durationSeconds < currentBest) {
             stats.bestTimes[gameResult.difficulty] = gameResult.durationSeconds;
         }
+
+        // Update difficulty total time (Only for wins)
+        stats.totalTimes[gameResult.difficulty] += gameResult.durationSeconds;
     } else {
         stats.losses += 1;
         stats.currentWinStreak = 0;
@@ -245,7 +248,14 @@ const updateStatsObject = (stats: UserStats, gameResult: GameResult, userDisplay
     // Recalculate derived stats
     if (stats.gamesPlayed > 0) {
         stats.winRate = stats.wins / stats.gamesPlayed;
-        stats.averageTimeSeconds = stats.totalTimeSeconds / stats.gamesPlayed;
+        // Average Time = Total Time of WINS / Total WINS
+        // We use sum of difficulty totalTimes because totalTimeSeconds includes losses
+        if (stats.wins > 0) {
+            const totalWinTime = Object.values(stats.totalTimes).reduce((a, b) => a + b, 0);
+            stats.averageTimeSeconds = totalWinTime / stats.wins;
+        } else {
+            stats.averageTimeSeconds = 0;
+        }
     }
 
     // Self-healing: Ensure gamesPlayedCounts >= completedCounts
@@ -285,7 +295,10 @@ const updateStatsObject = (stats: UserStats, gameResult: GameResult, userDisplay
         // But I will calculate average based on `completedCounts` if I want solve time? No that's inaccurate if I include loss time.
 
         // Let's stick to: Average Time = Total Time / Games Played. This is simple and consistent.
-        stats.averageTimes[gameResult.difficulty] = stats.totalTimes[gameResult.difficulty] / stats.gamesPlayedCounts[gameResult.difficulty];
+        // stats.averageTimes[gameResult.difficulty] = stats.totalTimes[gameResult.difficulty] / stats.gamesPlayedCounts[gameResult.difficulty];
+
+        // NEW LOGIC: Average Time = Total Win Time / Wins
+        stats.averageTimes[gameResult.difficulty] = stats.totalTimes[gameResult.difficulty] / stats.completedCounts[gameResult.difficulty];
     }
 
     return stats;

@@ -59,6 +59,11 @@ const AiHintModal = () => {
                                         highlight={{ r: result.r, c: result.c, value: result.value }}
                                     />
                                 </View>
+                                {result.technique && (
+                                    <View style={styles.techniqueBadge}>
+                                        <Text style={styles.techniqueText}>{result.technique}</Text>
+                                    </View>
+                                )}
                                 <Text style={styles.reasoning}>{result.reasoning}</Text>
                                 <View style={styles.suggestion}>
                                     <Text style={styles.suggestionText}>
@@ -190,6 +195,19 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '600',
         color: '#fff',
+    },
+    techniqueBadge: {
+        backgroundColor: '#e0e7ff',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 16,
+        marginBottom: 12,
+        alignSelf: 'flex-start',
+    },
+    techniqueText: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#4338ca',
     },
 });
 

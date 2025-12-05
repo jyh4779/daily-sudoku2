@@ -1,4 +1,4 @@
-import { OPENAI_API_KEY } from '../../../config/api';
+import { SudokuSolver, HintDetails } from '../model/SudokuSolver';
 import { useLanguageStore } from '../../settings/store/languageStore';
 
 export interface AiHintResponse {
@@ -6,85 +6,128 @@ export interface AiHintResponse {
     c: number;
     value: number;
     reasoning: string;
+    technique: string;
 }
 
 export const fetchAiHint = async (board: number[][]): Promise<AiHintResponse> => {
-    if (!OPENAI_API_KEY) {
-        throw new Error('OpenAI API Key is missing. Please check src/config/api.ts');
+    // Simulate async delay for better UX (optional, but good for feeling "processing")
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    const solver = new SudokuSolver(board);
+    const hint = solver.getNextHint();
+
+    if (!hint) {
+        throw new Error('No logical hint found. The puzzle might be solved or requires advanced techniques not yet implemented.');
     }
 
     const language = useLanguageStore.getState().language;
-    const langInstruction = language === 'ko'
-        ? "Answer in Korean. (한국어로 답변해줘)"
-        : "Answer in English.";
+    const isKo = language === 'ko';
 
-    const prompt = `
-    You are a Sudoku expert. Analyze this 9x9 Sudoku board (0 represents empty cells).
-    Find the most logical next step.
-    
-    Board:
-    ${JSON.stringify(board)}
-
-    IMPORTANT:
-    - ${langInstruction}
-    - The "r" and "c" fields in the JSON response must be 0-indexed (0-8).
-    - However, in the "reasoning" text, you MUST refer to Rows and Columns using 1-based indexing (Row 1-9, Column 1-9) to be user-friendly.
-    - For example, if you return "r": 0, "c": 0, the reasoning should say "Row 1, Column 1".
-    - Ensure the reasoning text matches the coordinates in "r" and "c".
-    - **REASONING QUALITY**:
-      - Do NOT hallucinate. Verify every fact (e.g., "Row 1 has a 7") against the board before stating it.
-      - Use clear logic: "Row 2 needs a 7. It cannot be in Col 6 because Row 9 Col 6 is 7..."
-      - Explain *why* other candidates are impossible if applicable.
-
-    Return ONLY a JSON object with the following format (no markdown, no code blocks):
-    {
-      "r": number (0-8, row index),
-      "c": number (0-8, column index),
-      "value": number (1-9),
-      "reasoning": "string (Explain why this number must go here. Be concise but logical. Mention specific rows, columns, or boxes using 1-9 indexing.)"
-    }
-  `;
-
-    try {
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${OPENAI_API_KEY}`
-            },
-            body: JSON.stringify({
-                model: "gpt-4o",
-                messages: [
-                    { role: "system", content: `You are a helpful Sudoku assistant. You always return valid JSON. ${langInstruction}` },
-                    { role: "user", content: prompt }
-                ],
-                response_format: { type: "json_object" }
-            })
-        });
-
-        if (!response.ok) {
-            const errText = await response.text();
-            throw new Error(`OpenAI API Error: ${response.status} - ${errText}`);
-        }
-
-        const data = await response.json();
-        const content = data.choices?.[0]?.message?.content;
-
-        if (!content) {
-            throw new Error('No response from AI');
-        }
-
-        const result = JSON.parse(content) as AiHintResponse;
-
-        // Validate result
-        if (typeof result.r !== 'number' || typeof result.c !== 'number' || typeof result.value !== 'number' || !result.reasoning) {
-            throw new Error('Invalid AI response format');
-        }
-
-        return result;
-
-    } catch (error: any) {
-        console.error('AI Hint Error:', error);
-        throw error;
-    }
+    return formatHintResponse(hint, isKo);
 };
+
+const formatHintResponse = (hint: HintDetails, isKo: boolean): AiHintResponse => {
+    let r = 0, c = 0, value = 0;
+    let reasoning = "";
+    let technique: string = hint.type;
+
+    // Map technique names to Korean if needed
+    if (isKo) {
+        const techMap: Record<string, string> = {
+            'Naked Single': '네이키드 싱글',
+            'Hidden Single': '히든 싱글',
+            'Naked Pair': '네이키드 페어',
+            'Naked Triple': '네이키드 트리플',
+            'Hidden Pair': '히든 페어',
+            'Hidden Triple': '히든 트리플',
+            'Pointing': '포인팅',
+            'Claiming': '클레임',
+            'X-Wing': 'X-윙',
+            'Y-Wing': 'Y-윙'
+        };
+        technique = techMap[hint.type] || hint.type;
+    }
+
+    // Determine target cell and value based on hint type
+    if (hint.cell !== undefined && hint.val !== undefined) {
+        // Single cell hints (Naked/Hidden Single)
+        r = Math.floor(hint.cell / 9);
+        c = hint.cell % 9;
+        value = hint.val;
+    } else if (hint.eliminations && hint.eliminations.length > 0) {
+        // Elimination hints (Pairs, Triples, Wings, Locked Candidates)
+        // For elimination hints, we usually want to highlight the cell where elimination happens
+        // OR we can just pick the first elimination to show "Hey, remove this candidate here"
+        // But the app expects a "value" to fill or at least focus on.
+        // If it's a "removal" hint, maybe we should guide the user to REMOVE a note?
+        // The current interface expects `value`. If we return a value that is NOT the solution, it might be confusing if the app tries to fill it.
+        // However, `AiHintResponse` implies a suggestion.
+
+        // Let's look at how the app uses this.
+        // sudokuStore.ts: useHint() fills the cell with the SOLUTION value.
+        // Wait, `requestAiHint` just sets `aiHintResult`. It doesn't apply it.
+        // The UI probably displays the reasoning.
+
+        // If the hint is about ELIMINATION, we should probably point to one of the cells where elimination occurs,
+        // and the "value" should be the candidate to remove.
+        // But the current UI might expect a "positive" hint (put this number here).
+
+        // If we only have elimination hints, it means we are in a harder puzzle.
+        // For now, let's pick the first elimination target.
+        const targetIdx = hint.eliminations[0];
+        r = Math.floor(targetIdx / 9);
+        c = targetIdx % 9;
+        value = hint.val || 0; // The value to remove
+
+        // We need to make sure the reasoning explains this is a REMOVAL.
+    }
+
+    // Generate Reasoning Text
+    if (isKo) {
+        reasoning = translateReasoning(hint);
+    } else {
+        reasoning = hint.description;
+    }
+
+    return {
+        r,
+        c,
+        value,
+        reasoning,
+        technique
+    };
+};
+
+const translateReasoning = (hint: HintDetails): string => {
+    // Basic translation logic based on hint type
+    // This can be expanded for better localization
+    if (hint.type === 'Naked Single') {
+        const r = Math.floor(hint.cell! / 9) + 1;
+        const c = (hint.cell! % 9) + 1;
+        return `${r}행 ${c}열에는 ${hint.val}만 들어갈 수 있습니다.`;
+    }
+    if (hint.type === 'Hidden Single') {
+        const r = Math.floor(hint.cell! / 9) + 1;
+        const c = (hint.cell! % 9) + 1;
+        return `${hint.val}은(는) 이 구역(행/열/박스)에서 ${r}행 ${c}열에만 들어갈 수 있습니다.`;
+    }
+
+    // For complex hints, we might just return the English description or a generic message for now,
+    // as full translation requires parsing the dynamic parts of the description string.
+    // Or we can reconstruct it from the hint data.
+
+    if (hint.type === 'Pointing' || hint.type === 'Claiming') {
+        return `후보 숫자 ${hint.val}이(가) 특정 라인에 한정되어 있어, 다른 칸에서 제거할 수 있습니다.`;
+    }
+
+    if (hint.type.includes('Pair') || hint.type.includes('Triple')) {
+        return `특정 칸들에 후보 숫자가 묶여 있어(${hint.type}), 다른 칸에서 해당 후보를 제거할 수 있습니다.`;
+    }
+
+    if (hint.type === 'X-Wing' || hint.type === 'Y-Wing') {
+        return `${hint.type} 패턴이 발견되어 후보 숫자 ${hint.val}을(를) 제거할 수 있습니다.`;
+    }
+
+    return hint.description; // Fallback to English if not handled
+};
+

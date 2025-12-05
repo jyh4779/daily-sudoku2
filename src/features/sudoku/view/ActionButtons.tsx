@@ -152,7 +152,7 @@ export default function ActionButtons() {
       <ActionButton action="undo" label={texts.game.actions.undo} onPress={onUndo} />
       <ActionButton action="erase" label={texts.game.actions.erase} onPress={onErase} />
       <ActionButton action="hint" label={texts.game.actions.hint} onPress={onHint} />
-      {/* <ActionButton action="ai_hint" label={texts.game.actions.aiHint} onPress={onAiHint} /> */}
+      <ActionButton action="ai_hint" label={texts.game.actions.aiHint} onPress={onAiHint} />
       <ActionButton action="note" label={texts.game.actions.note} onPress={onNote} active={noteMode} />
       <ActionButton action="padmode" label={texts.game.actions.padMode} onPress={onPadMode} active={padSelectMode} />
     </View>
