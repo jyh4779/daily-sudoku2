@@ -72,6 +72,48 @@ export const TEXTS_EN = {
             padMode: 'Pad Mode',
             aiHint: 'AI Hint',
         },
+        techniques: {
+            nakedSingle: {
+                name: 'Naked Single',
+                desc: 'A cell has only one possible candidate remaining. No other number can go there.',
+            },
+            hiddenSingle: {
+                name: 'Hidden Single',
+                desc: 'A number can only go in one specific cell within a row, column, or box, even if that cell has other candidates.',
+            },
+            nakedPair: {
+                name: 'Naked Pair',
+                desc: 'Two cells in the same unit (row/col/box) contain only the same two candidates. These candidates can be removed from other cells in that unit.',
+            },
+            nakedTriple: {
+                name: 'Naked Triple',
+                desc: 'Three cells in the same unit contain only combinations of three candidates. These candidates can be removed from other cells in that unit.',
+            },
+            hiddenPair: {
+                name: 'Hidden Pair',
+                desc: 'Two candidates appear only in the same two cells within a unit. Even if these cells have other candidates, they must contain these two numbers.',
+            },
+            hiddenTriple: {
+                name: 'Hidden Triple',
+                desc: 'Three candidates appear only in the same three cells within a unit. These cells must contain these three numbers.',
+            },
+            pointing: {
+                name: 'Pointing',
+                desc: 'A candidate in a box is restricted to a single row or column. It can be removed from the rest of that row or column.',
+            },
+            claiming: {
+                name: 'Claiming',
+                desc: 'A candidate in a row or column is restricted to a single box. It can be removed from the rest of that box.',
+            },
+            xWing: {
+                name: 'X-Wing',
+                desc: 'A pattern where a candidate appears in only two positions in two rows (or columns), forming a rectangle. It eliminates the candidate from the other corners.',
+            },
+            yWing: {
+                name: 'Y-Wing',
+                desc: 'A pattern involving three cells with two candidates each (pivot and pincers). It eliminates a common candidate from cells that see both pincers.',
+            },
+        },
     },
     stats: {
         title: 'My Statistics',

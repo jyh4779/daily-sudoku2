@@ -1,9 +1,15 @@
-import React from 'react';
-import { View, Text, StyleSheet, Modal, Pressable, ActivityIndicator, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Modal, Pressable, ActivityIndicator, ScrollView, LayoutAnimation, Platform, UIManager } from 'react-native';
 import { useSudokuStore } from '../viewmodel/sudokuStore';
 import MiniBoard from './MiniBoard';
+import { useTexts } from '../../../config/texts';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 const AiHintModal = () => {
+    const texts = useTexts();
     const loading = useSudokuStore(s => s.aiHintLoading);
     const result = useSudokuStore(s => s.aiHintResult);
     const error = useSudokuStore(s => s.aiHintError);
@@ -13,7 +19,15 @@ const AiHintModal = () => {
     const values = useSudokuStore(s => s.values);
     const puzzle = useSudokuStore(s => s.puzzle);
 
+    const [showDescription, setShowDescription] = useState(false);
+
     const visible = loading || !!result || !!error;
+
+    useEffect(() => {
+        if (!visible) {
+            setShowDescription(false);
+        }
+    }, [visible]);
 
     const handleClose = () => {
         clearAiHint();
@@ -27,7 +41,31 @@ const AiHintModal = () => {
         }
     };
 
+    const toggleDescription = () => {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        setShowDescription(!showDescription);
+    };
+
+    const getTechniqueInfo = (key: string) => {
+        const techMap: Record<string, keyof typeof texts.game.techniques> = {
+            'Naked Single': 'nakedSingle',
+            'Hidden Single': 'hiddenSingle',
+            'Naked Pair': 'nakedPair',
+            'Naked Triple': 'nakedTriple',
+            'Hidden Pair': 'hiddenPair',
+            'Hidden Triple': 'hiddenTriple',
+            'Pointing': 'pointing',
+            'Claiming': 'claiming',
+            'X-Wing': 'xWing',
+            'Y-Wing': 'yWing',
+        };
+        const techKey = techMap[key];
+        return techKey ? texts.game.techniques[techKey] : null;
+    };
+
     if (!visible) return null;
+
+    const techInfo = result?.techniqueKey ? getTechniqueInfo(result.techniqueKey) : null;
 
     return (
         <Modal transparent animationType="fade" visible={visible} onRequestClose={handleClose}>
@@ -53,18 +91,35 @@ const AiHintModal = () => {
                             <View style={styles.content}>
                                 <View style={styles.boardContainer}>
                                     <MiniBoard
-                                        size={240}
+                                        size={260}
                                         values={values}
                                         puzzle={puzzle}
                                         highlight={{ r: result.r, c: result.c, value: result.value }}
+                                        relatedCells={result.relatedCells}
+                                        relatedRegions={result.relatedRegions}
                                     />
                                 </View>
+
                                 {result.technique && (
-                                    <View style={styles.techniqueBadge}>
-                                        <Text style={styles.techniqueText}>{result.technique}</Text>
+                                    <Pressable
+                                        style={[styles.techniqueBadge, showDescription && styles.techniqueBadgeActive]}
+                                        onPress={toggleDescription}
+                                    >
+                                        <Text style={[styles.techniqueText, showDescription && styles.techniqueTextActive]}>
+                                            {result.technique} ⓘ
+                                        </Text>
+                                    </Pressable>
+                                )}
+
+                                {showDescription && techInfo && (
+                                    <View style={styles.descriptionBox}>
+                                        <Text style={styles.descriptionTitle}>{techInfo.name}</Text>
+                                        <Text style={styles.descriptionText}>{techInfo.desc}</Text>
                                     </View>
                                 )}
+
                                 <Text style={styles.reasoning}>{result.reasoning}</Text>
+
                                 <View style={styles.suggestion}>
                                     <Text style={styles.suggestionText}>
                                         Suggestion: Place <Text style={styles.bold}>{result.value}</Text> at Row {result.r + 1}, Col {result.c + 1}
@@ -100,40 +155,40 @@ const styles = StyleSheet.create({
     },
     card: {
         width: '100%',
-        maxWidth: 360, // Increased width
-        maxHeight: '85%', // Limit height
+        maxWidth: 360,
+        maxHeight: '90%',
         backgroundColor: '#fff',
-        borderRadius: 16,
+        borderRadius: 20,
         padding: 24,
         alignItems: 'center',
-        elevation: 5,
+        elevation: 10,
         shadowColor: '#000',
-        shadowOpacity: 0.2,
+        shadowOpacity: 0.25,
         shadowRadius: 10,
         shadowOffset: { width: 0, height: 4 },
     },
     scrollContent: {
         alignItems: 'center',
         width: '100%',
+        paddingBottom: 20,
     },
     title: {
-        fontSize: 20,
+        fontSize: 22,
         fontWeight: '800',
         color: '#2f3b59',
         marginBottom: 20,
     },
     content: {
         alignItems: 'center',
-        marginBottom: 24,
         width: '100%',
     },
     boardContainer: {
         marginBottom: 20,
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#f8f9fa', // Add background to verify visibility
-        padding: 10,
-        borderRadius: 8,
+        // backgroundColor: '#f8f9fa', // Removed background to look cleaner
+        // padding: 10,
+        // borderRadius: 8,
     },
     text: {
         fontSize: 16,
@@ -150,22 +205,24 @@ const styles = StyleSheet.create({
         lineHeight: 22,
         textAlign: 'left',
         marginBottom: 16,
-        alignSelf: 'stretch', // Ensure full width
+        alignSelf: 'stretch',
     },
     suggestion: {
         backgroundColor: '#f0f4ff',
-        padding: 12,
-        borderRadius: 8,
+        padding: 16,
+        borderRadius: 12,
         width: '100%',
+        alignItems: 'center',
     },
     suggestionText: {
-        fontSize: 14,
+        fontSize: 15,
         color: '#5b7df6',
         fontWeight: '600',
         textAlign: 'center',
     },
     bold: {
         fontWeight: '800',
+        fontSize: 16,
     },
     actions: {
         flexDirection: 'row',
@@ -175,8 +232,8 @@ const styles = StyleSheet.create({
     },
     btn: {
         flex: 1,
-        paddingVertical: 12,
-        borderRadius: 12,
+        paddingVertical: 14,
+        borderRadius: 14,
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -198,16 +255,42 @@ const styles = StyleSheet.create({
     },
     techniqueBadge: {
         backgroundColor: '#e0e7ff',
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 16,
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 20,
         marginBottom: 12,
         alignSelf: 'flex-start',
+    },
+    techniqueBadgeActive: {
+        backgroundColor: '#4338ca',
     },
     techniqueText: {
         fontSize: 14,
         fontWeight: '700',
         color: '#4338ca',
+    },
+    techniqueTextActive: {
+        color: '#fff',
+    },
+    descriptionBox: {
+        backgroundColor: '#f8fafc',
+        padding: 16,
+        borderRadius: 12,
+        marginBottom: 16,
+        width: '100%',
+        borderLeftWidth: 4,
+        borderLeftColor: '#4338ca',
+    },
+    descriptionTitle: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#2f3b59',
+        marginBottom: 4,
+    },
+    descriptionText: {
+        fontSize: 14,
+        color: '#64748b',
+        lineHeight: 20,
     },
 });
 

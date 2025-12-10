@@ -7,6 +7,9 @@ export interface AiHintResponse {
     value: number;
     reasoning: string;
     technique: string;
+    techniqueKey: string;
+    relatedCells?: number[];
+    relatedRegions?: { type: 'row' | 'col' | 'box'; index: number }[];
 }
 
 export const fetchAiHint = async (board: number[][]): Promise<AiHintResponse> => {
@@ -30,6 +33,7 @@ const formatHintResponse = (hint: HintDetails, isKo: boolean): AiHintResponse =>
     let r = 0, c = 0, value = 0;
     let reasoning = "";
     let technique: string = hint.type;
+    const techniqueKey = hint.type;
 
     // Map technique names to Korean if needed
     if (isKo) {
@@ -56,30 +60,10 @@ const formatHintResponse = (hint: HintDetails, isKo: boolean): AiHintResponse =>
         value = hint.val;
     } else if (hint.eliminations && hint.eliminations.length > 0) {
         // Elimination hints (Pairs, Triples, Wings, Locked Candidates)
-        // For elimination hints, we usually want to highlight the cell where elimination happens
-        // OR we can just pick the first elimination to show "Hey, remove this candidate here"
-        // But the app expects a "value" to fill or at least focus on.
-        // If it's a "removal" hint, maybe we should guide the user to REMOVE a note?
-        // The current interface expects `value`. If we return a value that is NOT the solution, it might be confusing if the app tries to fill it.
-        // However, `AiHintResponse` implies a suggestion.
-
-        // Let's look at how the app uses this.
-        // sudokuStore.ts: useHint() fills the cell with the SOLUTION value.
-        // Wait, `requestAiHint` just sets `aiHintResult`. It doesn't apply it.
-        // The UI probably displays the reasoning.
-
-        // If the hint is about ELIMINATION, we should probably point to one of the cells where elimination occurs,
-        // and the "value" should be the candidate to remove.
-        // But the current UI might expect a "positive" hint (put this number here).
-
-        // If we only have elimination hints, it means we are in a harder puzzle.
-        // For now, let's pick the first elimination target.
         const targetIdx = hint.eliminations[0];
         r = Math.floor(targetIdx / 9);
         c = targetIdx % 9;
-        value = hint.val || 0; // The value to remove
-
-        // We need to make sure the reasoning explains this is a REMOVAL.
+        value = hint.val || 0;
     }
 
     // Generate Reasoning Text
@@ -94,7 +78,10 @@ const formatHintResponse = (hint: HintDetails, isKo: boolean): AiHintResponse =>
         c,
         value,
         reasoning,
-        technique
+        technique,
+        techniqueKey,
+        relatedCells: hint.relatedCells,
+        relatedRegions: hint.relatedRegions
     };
 };
 
@@ -130,4 +117,3 @@ const translateReasoning = (hint: HintDetails): string => {
 
     return hint.description; // Fallback to English if not handled
 };
-

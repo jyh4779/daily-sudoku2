@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, Alert, BackHandler, Switch, ScrollView } from 'react-native';
-import { GoogleSigninButton } from '@react-native-google-signin/google-signin';
+import { GoogleSigninButton, statusCodes } from '@react-native-google-signin/google-signin';
 import { useTexts } from '../../config/texts';
 import { signInWithGoogle, signOut, getCurrentUser } from '../../core/auth/AuthRepository';
 import { useLanguageStore } from './store/languageStore';
@@ -81,9 +81,14 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onGoBack, onUserChanged
             await signInWithGoogle();
             onUserChanged();
             Alert.alert(texts.settings.success, texts.settings.linked);
-        } catch (error) {
-            console.error('Google Sign-In failed', error);
-            Alert.alert(texts.settings.loginFailed, texts.settings.loginFailedMsg);
+        } catch (error: any) {
+            if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+                console.log('Google Sign-In cancelled');
+                // No need to alert the user
+            } else {
+                console.error('Google Sign-In failed', error);
+                Alert.alert(texts.settings.loginFailed, texts.settings.loginFailedMsg);
+            }
         } finally {
             setIsLoading(false);
         }

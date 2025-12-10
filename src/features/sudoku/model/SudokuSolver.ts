@@ -21,6 +21,8 @@ export interface HintDetails {
     candidates?: number[];
     cells?: number[];
     eliminations?: number[]; // Indices where candidates are removed
+    relatedCells?: number[]; // Cells to highlight in red (e.g. pair members)
+    relatedRegions?: { type: 'row' | 'col' | 'box'; index: number }[]; // Regions to highlight in light red
 }
 
 export class SudokuSolver {
@@ -145,7 +147,12 @@ export class SudokuSolver {
                     difficulty: 1,
                     description: `Row ${r}, Column ${c} has only one possible candidate: ${val}.`,
                     cell: i,
-                    val: val
+                    val: val,
+                    relatedRegions: [
+                        { type: 'row', index: r - 1 },
+                        { type: 'col', index: c - 1 },
+                        { type: 'box', index: Math.floor((r - 1) / 3) * 3 + Math.floor((c - 1) / 3) }
+                    ]
                 };
             }
         }
@@ -167,7 +174,8 @@ export class SudokuSolver {
                         difficulty: 1,
                         description: `In Box ${b + 1}, the number ${val} can only go in Row ${r}, Column ${c}.`,
                         cell: idx,
-                        val: val
+                        val: val,
+                        relatedRegions: [{ type: 'box', index: b }]
                     };
                 }
             }
@@ -186,7 +194,8 @@ export class SudokuSolver {
                         difficulty: 1,
                         description: `In Row ${r + 1}, the number ${val} can only go in Column ${c}.`,
                         cell: idx,
-                        val: val
+                        val: val,
+                        relatedRegions: [{ type: 'row', index: r }]
                     };
                 }
             }
@@ -205,7 +214,8 @@ export class SudokuSolver {
                         difficulty: 1,
                         description: `In Column ${c + 1}, the number ${val} can only go in Row ${r}.`,
                         cell: idx,
-                        val: val
+                        val: val,
+                        relatedRegions: [{ type: 'col', index: c }]
                     };
                 }
             }
@@ -238,7 +248,8 @@ export class SudokuSolver {
                             difficulty: 2,
                             description: `In Box ${b + 1}, the number ${val} is confined to Row ${r + 1}. It can be removed from other cells in that row.`,
                             val: val,
-                            eliminations: elim
+                            eliminations: elim,
+                            relatedRegions: [{ type: 'box', index: b }, { type: 'row', index: r }]
                         };
                     }
                 }
@@ -260,7 +271,8 @@ export class SudokuSolver {
                             difficulty: 2,
                             description: `In Box ${b + 1}, the number ${val} is confined to Column ${c + 1}. It can be removed from other cells in that column.`,
                             val: val,
-                            eliminations: elim
+                            eliminations: elim,
+                            relatedRegions: [{ type: 'box', index: b }, { type: 'col', index: c }]
                         };
                     }
                 }
@@ -291,7 +303,8 @@ export class SudokuSolver {
                             difficulty: 2,
                             description: `In Row ${r + 1}, the number ${val} is confined to Box ${b + 1}. It can be removed from other cells in that box.`,
                             val: val,
-                            eliminations: elim
+                            eliminations: elim,
+                            relatedRegions: [{ type: 'row', index: r }, { type: 'box', index: b }]
                         };
                     }
                 }
@@ -321,7 +334,8 @@ export class SudokuSolver {
                             difficulty: 2,
                             description: `In Column ${c + 1}, the number ${val} is confined to Box ${b + 1}. It can be removed from other cells in that box.`,
                             val: val,
-                            eliminations: elim
+                            eliminations: elim,
+                            relatedRegions: [{ type: 'col', index: c }, { type: 'box', index: b }]
                         };
                     }
                 }
@@ -372,7 +386,8 @@ export class SudokuSolver {
                             description: `Cells ${cells.map(i => `R${Math.floor(i / 9) + 1}C${i % 9 + 1}`).join(', ')} contain only candidates {${cands.join(', ')}}. These candidates can be removed from other cells in the same unit.`,
                             cells: cells,
                             candidates: cands,
-                            eliminations: elim
+                            eliminations: elim,
+                            relatedCells: cells
                         };
                     }
                 }
@@ -427,7 +442,8 @@ export class SudokuSolver {
                             description: `Candidates {${cands.join(', ')}} appear only in cells ${cells.map(i => `R${Math.floor(i / 9) + 1}C${i % 9 + 1}`).join(', ')} within this unit. All other candidates can be removed from these cells.`,
                             cells: cells,
                             candidates: cands,
-                            eliminations: elim
+                            eliminations: elim,
+                            relatedCells: cells
                         };
                     }
                 }
@@ -480,7 +496,9 @@ export class SudokuSolver {
                                 difficulty: 3,
                                 description: `X-Wing for number ${val} in Rows ${r1.r + 1} and ${r2.r + 1}. Candidates can be removed from Columns ${c1 + 1} and ${c2 + 1}.`,
                                 val: val,
-                                eliminations: elim
+                                eliminations: elim,
+                                relatedCells: [r1.r * 9 + c1, r1.r * 9 + c2, r2.r * 9 + c1, r2.r * 9 + c2],
+                                relatedRegions: [{ type: 'row', index: r1.r }, { type: 'row', index: r2.r }]
                             };
                         }
                     }
@@ -531,7 +549,9 @@ export class SudokuSolver {
                                 difficulty: 3,
                                 description: `X-Wing for number ${val} in Columns ${c1.c + 1} and ${c2.c + 1}. Candidates can be removed from Rows ${r1 + 1} and ${r2 + 1}.`,
                                 val: val,
-                                eliminations: elim
+                                eliminations: elim,
+                                relatedCells: [r1 * 9 + c1.c, r1 * 9 + c2.c, r2 * 9 + c1.c, r2 * 9 + c2.c],
+                                relatedRegions: [{ type: 'col', index: c1.c }, { type: 'col', index: c2.c }]
                             };
                         }
                     }
@@ -596,7 +616,8 @@ export class SudokuSolver {
                                 difficulty: 3,
                                 description: `Y-Wing found with pivot at R${Math.floor(pivot / 9) + 1}C${pivot % 9 + 1}. Eliminating candidate ${C} from common peers.`,
                                 val: C,
-                                eliminations: elim
+                                eliminations: elim,
+                                relatedCells: [pivot, pA, pB]
                             };
                         }
                     }
