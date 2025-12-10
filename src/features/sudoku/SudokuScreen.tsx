@@ -53,10 +53,14 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode, difficulty 
   const handleGoHome = onGoHome ?? (() => { });
 
   const [showTutorialOverlay, setShowTutorialOverlay] = useState(mode === 'tutorial');
+  // Auto-Solve State
+  const [isAutoSolving, setIsAutoSolving] = useState(false);
+  const autoSolveInProgress = React.useRef(false);
+  const setValue = useSudokuStore(s => s.setValue);
+  const clearNotesAt = useSudokuStore(s => s.clearNotesAt);
 
-  useEffect(() => {
 
-  }, []);
+
 
   const dailyDate = useSudokuStore(s => s.dailyDate);
 
@@ -138,6 +142,46 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode, difficulty 
   }, [isPaused, isSolved, isLost, handleGoHome]);
 
   const [startTime, setStartTime] = useState(Date.now());
+
+  // Auto-Solve Logic
+  useEffect(() => {
+    if (autoSolveInProgress.current || isSolved || isLost || isPaused || !isReady) return;
+
+    let emptyCount = 0;
+    const empties: { r: number; c: number }[] = [];
+    if (values) {
+      for (let r = 0; r < 9; r++) {
+        for (let c = 0; c < 9; c++) {
+          if (values[r][c] === 0) {
+            emptyCount++;
+            empties.push({ r, c });
+          }
+        }
+      }
+    }
+
+    if (emptyCount > 0 && emptyCount < 9) {
+      autoSolveInProgress.current = true;
+      setIsAutoSolving(true);
+      const runAutoSolve = async () => {
+        for (const { r, c } of empties) {
+          if (values && values[r][c] === 0 && solution) {
+            const ans = solution[r][c];
+            clearNotesAt(r, c);
+            setValue(r, c, ans);
+            await new Promise(resolve => setTimeout(resolve, 200));
+          }
+        }
+        setIsAutoSolving(false);
+      };
+      runAutoSolve();
+    }
+  }, [values, isSolved, isLost, isPaused, isReady, solution, setValue, clearNotesAt]);
+
+  useEffect(() => {
+    autoSolveInProgress.current = false;
+    setIsAutoSolving(false);
+  }, [mode, difficulty, isDailyChallenge, loadNewGame, restartCurrent]);
 
   useEffect(() => {
     setStartTime(Date.now());
@@ -339,6 +383,17 @@ const SudokuScreen: React.FC<SudokuScreenProps> = ({ onGoHome, mode, difficulty 
                   </Pressable>
                 </View>
               )}
+            </View>
+          </View>
+        )
+      }
+
+      {
+        isAutoSolving && (
+          <View style={styles.overlay}>
+            <View style={styles.modalCard}>
+              <Text style={styles.modalTitle}>{texts.game.autoSolving.title}</Text>
+              <Text style={{ color: '#666', marginBottom: 10 }}>{texts.game.autoSolving.message}</Text>
             </View>
           </View>
         )

@@ -63,6 +63,10 @@ export const TEXTS_EN = {
             newGame: 'New Game',
             home: 'Home',
         },
+        autoSolving: {
+            title: 'Auto Solving...',
+            message: 'Completing the final cells!',
+        },
         mistakeCounter: (mistakes: number, limit: number) => `Mistakes ${mistakes}/${limit}`,
         actions: {
             undo: 'Undo',

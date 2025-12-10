@@ -65,6 +65,10 @@ export const TEXTS_KO: TextResources = {
             newGame: '새 게임',
             home: '홈으로',
         },
+        autoSolving: {
+            title: '자동 풀이 중...',
+            message: '남은 빈칸을 채우고 있습니다!',
+        },
         mistakeCounter: (mistakes: number, limit: number) => `실수 ${mistakes}/${limit}`,
         actions: {
             undo: '되돌리기',
