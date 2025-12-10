@@ -9,6 +9,7 @@
 - **Git**: 2.45.0.windows.1
 - **Java**: OpenJDK 21.0.5 (Temurin 21.0.5+11 LTS)
 - **Gradle**: 8.13
+- **NDK**: 27.0.12077973
 
 ---
 
