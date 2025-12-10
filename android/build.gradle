@@ -36,4 +36,31 @@ subprojects {
             mavenCentral()
         }
     }
+    // Helper definition to apply flags
+    def configureNative16KB = { project ->
+        if (project.hasProperty("android")) {
+            project.android {
+                if (it.hasProperty("defaultConfig")) {
+                    defaultConfig {
+                        externalNativeBuild {
+                            cmake {
+                                cppFlags "-Wl,-z,max-page-size=16384"
+                                arguments "-DANDROID_LINKER_FLAGS=-Wl,-z,max-page-size=16384"
+                            }
+                            ndkBuild {
+                                cppFlags "-Wl,-z,max-page-size=16384"
+                                arguments "APP_LDFLAGS+=-Wl,-z,max-page-size=16384", "NDK_TOOLCHAIN_VERSION=clang"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (it.state.executed) {
+        configureNative16KB(it)
+    } else {
+        it.afterEvaluate(configureNative16KB)
+    }
 }
